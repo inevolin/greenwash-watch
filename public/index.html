@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#f3efe6">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%23f3efe6'/><rect x='5' y='13' width='22' height='6' fill='%23111'/><circle cx='26' cy='7' r='3' fill='%23e3271b'/></svg>">
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="cma.css">
 </head>
 <body>
 <div class="grain" aria-hidden="true"></div>
@@ -108,8 +109,30 @@
     <p id="stepNow" class="step-now mono">Starting…</p>
     <details><summary class="mono">Agent log</summary><ol id="steps"></ol></details>
   </div>
+  <div id="cma-live" class="cma-live hidden" aria-live="polite">
+    <div class="cma-steer" id="cma-steer"><span>Steer the agent:</span>
+      <button type="button" data-preset="deeper">Dig deeper</button>
+      <button type="button" data-preset="rulings">Find rulings</button>
+      <button type="button" data-preset="packaging">Check packaging</button>
+      <button type="button" data-preset="wrap">Wrap up</button></div>
+    <div class="cma-lanes" id="cma-lanes">
+      <div class="cma-lane" data-agent="Prosecutor"><h4>Prosecutor</h4><ol></ol></div>
+      <div class="cma-lane" data-agent="Judge"><h4>Judge</h4><ol></ol></div>
+      <div class="cma-lane" data-agent="Defender"><h4>Defender</h4><ol></ol></div>
+    </div>
+    <div class="cma-outcome" id="cma-outcome"></div>
+  </div>
   <div id="report"></div>
+  <div id="cma-debate" class="cma-debate"></div>
   <div class="recent-wrap"><h3 class="mono">Recently investigated</h3><div id="recent" class="recent"></div></div>
+</section>
+
+<!-- UNDER THE HOOD (cma.js) -->
+<section id="hood" class="section hood reveal">
+  <h2>Under the hood</h2>
+  <p class="sub">Every box is a live Claude Managed Agents object.</p>
+  <div id="hood-diagram" class="hood-diagram"></div>
+  <div id="hood-stats" class="hood-stats"></div>
 </section>
 </main>
 
@@ -119,6 +142,7 @@
 <script src="vendor/gsap.min.js"></script>
 <script src="vendor/ScrollTrigger.min.js"></script>
 <script src="vendor/lenis.min.js"></script>
+<script src="cma.js"></script>
 <script src="app.js"></script>
 <script src="motion.js"></script>
 </body>

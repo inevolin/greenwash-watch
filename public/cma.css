@@ -1,0 +1,27 @@
+/* CMA live panel + under-the-hood. Minimal; inherits the site palette. */
+.cma-live.hidden{display:none}
+.cma-steer{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.8rem 0}
+.cma-steer button{border:2px solid #1d2a24;background:#fff;border-radius:999px;padding:.3rem .8rem;cursor:pointer;font:inherit}
+.cma-steer button:disabled{opacity:.4;cursor:default}
+.cma-lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem}
+@media(max-width:760px){.cma-lanes{grid-template-columns:1fr}}
+.cma-lane{background:#fff;border:2px solid #1d2a24;border-radius:14px;padding:.6rem;max-height:340px;overflow:auto}
+.cma-lane h4{margin:0 0 .4rem}
+.cma-lane ol{list-style:none;margin:0;padding:0;font-size:.85rem}
+.cma-lane li{padding:.3rem .4rem;border-left:4px solid #2fbf71;margin:.3rem 0;animation:cmaIn .35s ease-out both;word-break:break-word}
+.cma-lane li.k-tool{border-color:#2fbf71}.cma-lane li.k-handoff,.cma-lane li.k-report{border-color:#ff7a45;background:#fff6f1}
+.cma-lane li.k-grade{border-color:#7a5cff;background:#f5f2ff}.cma-lane li.k-steer{border-color:#1d2a24;background:#fdf6d8}
+.cma-lane li b{font-weight:600}
+@keyframes cmaIn{from{opacity:0;transform:translateY(6px)}}
+.cma-outcome{margin:.6rem 0;font-weight:600}
+.cma-debate .cma-pd{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.85rem;margin-top:.4rem}
+.cma-pd div{padding:.4rem;border-radius:8px}.cma-pd .p{background:#fff1ec}.cma-pd .d{background:#eefaf3}
+.hood-diagram{display:flex;flex-wrap:wrap;gap:.8rem;justify-content:center;position:relative}
+.hood-node{background:#fff;border:2px solid #1d2a24;border-radius:14px;padding:.6rem .8rem;min-width:170px;animation:cmaIn .5s both}
+.hood-node h5{margin:0 0 .2rem;font-size:.95rem}.hood-node code{font-size:.72rem;word-break:break-all}
+.hood-node small{display:block;color:#5d6b63}
+.hood-node.pulse{animation:cmaIn .5s both,hoodPulse 2.4s ease-in-out infinite}
+@keyframes hoodPulse{50%{box-shadow:0 0 0 6px rgba(47,191,113,.25)}}
+.hood-stats{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;margin-top:1rem}
+.hood-stats div{text-align:center}.hood-stats b{display:block;font-size:1.4rem}
+@media(prefers-reduced-motion:reduce){.cma-lane li,.hood-node{animation:none!important}}

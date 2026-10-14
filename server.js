@@ -131,18 +131,21 @@ function pushEv(job, e) {
 
 async function watch(job, sessionId) {
   const ac = new AbortController(); job.abort = ac;
-  const texts = [], threads = new Set();
+  const texts = [], threads = new Set(), names = {};
   let resolveIdle; const idle = new Promise((r) => (resolveIdle = r));
   const handle = (agent) => (ev) => {
     if (ev.type === 'session.usage' && ev.usage) job.stats = { ...(job.stats || {}), live_cost_cents: Number((ev.usage.list_cost || {}).amount || 0) };
     if (agent === 'Judge' && ev.type === 'agent.message') texts.push(textOf(ev));
     if (ev.type === 'span.outcome_evaluation_end') job.outcome = { result: ev.result, iterations: (job.outcome?.iterations || 0) + 1, explanation: ev.explanation || '' };
     if (ev.type === 'session.thread_created' && ev.session_thread_id && !threads.has(ev.session_thread_id)) {
-      threads.add(ev.session_thread_id);
+      threads.add(ev.session_thread_id); names[ev.session_thread_id] = ev.agent_name;
       sse(`/sessions/${sessionId}/threads/${ev.session_thread_id}/stream?beta=true`, handle(ev.agent_name || 'subagent'), ac.signal).catch(() => {});
     }
     if (agent === 'Judge' && (ev.type === 'session.status_idle' || ev.type === 'session.status_terminated' || ev.type === 'session.error')) resolveIdle(ev);
-    const l = label(ev); if (l) pushEv(job, { agent: l.from && ev.type === 'agent.thread_message_received' ? l.from : agent, ...l });
+    if (agent !== 'Judge' && ev.type === 'agent.thread_message_received') return; // its prompt; already shown as the handoff
+    const l = label(ev); if (l && l.kind === 'handoff') l.to = l.to || names[ev.to_session_thread_id];
+    if (l && l.kind === 'report') l.from = l.from || names[ev.from_session_thread_id];
+    if (l) pushEv(job, { agent: l.from && ev.type === 'agent.thread_message_received' ? l.from : agent, ...l });
   };
   const primary = sse(`/sessions/${sessionId}/events/stream?beta=true`, handle('Judge'), ac.signal).catch((e) => { if (!ac.signal.aborted) resolveIdle({ type: 'stream_closed', err: e.message }); });
   primary.then(() => resolveIdle({ type: 'stream_closed' }));

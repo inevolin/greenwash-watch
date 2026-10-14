@@ -101,6 +101,7 @@ $('#form').addEventListener('submit', async (e) => {
 });
 
 function showReport(r, mock, note) {
+  window.dispatchEvent(new CustomEvent("gw:report", { detail: r }));
   const banner = mock || r.example_data ? `<div class="banner">Demo data. This is not a live run.</div>` : note ? `<div class="banner saved">${esc(note)}</div>` : '';
   const items = (r.claims || []).map((c, i) => `<article class="claim ${vClass(c.verdict)}" style="--i:${i}">
     <span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><q>${esc(c.claim)}</q>
