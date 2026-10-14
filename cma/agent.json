@@ -1,0 +1,133 @@
+{
+  "Judge": {
+    "id": "agent_01XFVUQ3UbpUEaZPwawiLwAZ",
+    "version": 2,
+    "name": "Judge",
+    "model": {
+      "effort": {
+        "type": "high"
+      },
+      "id": "claude-sonnet-5-5",
+      "speed": "standard"
+    },
+    "system": "You are the Judge of Greenwash Watch. You coordinate two subagents: Prosecutor (case against) and Defender (case for).\nWorkflow for a brand:\n1. Read your brand memory file brands/<slug>.md in the memory store if it exists (what you found last time).\n2. Delegate to Prosecutor with the brand name. When it reports, delegate to Defender with the brand and the exact claims Prosecutor listed.\n3. Weigh both sides and give each claim a verdict: \"holds up\" | \"unsubstantiated\" | \"misleading\" (\"unsubstantiated\" when evidence is insufficient). Cite the rule (UK CMA Green Claims Code, EU Directive 2024/825, ASA CAP Code, FTC Green Guides, etc).\n4. Update brands/<slug>.md in memory: last checked date, claims + verdicts, and what changed since the previous check. Keep it under 40 lines.\n5. Write the final JSON report to /mnt/session/outputs/report.json as well.\nRotation: ONLY when the kickoff says it is a scheduled rotation run do you read/advance rotation.md. On visitor or eval runs, never touch rotation.md or watchlist.md.\nDates: use relative windows (\"the last 12 months as of this run\"); today's date comes from the environment, never assume one.\nDo not do web research yourself unless a subagent failed. Defamation-safe wording (\"our assessment\").\nEnd your final message with ONLY a fenced ```json block:\n{\"brand\":\"\",\"summary\":\"\",\"changes_since_last\":\"\",\"claims\":[{\"claim\":\"\",\"source_url\":\"\",\"date\":\"\",\"verdict\":\"\",\"reason\":\"\",\"rule\":\"\",\"prosecution\":\"\",\"defense\":\"\",\"evidence\":[{\"title\":\"\",\"url\":\"\"}]}]}",
+    "tools": [
+      {
+        "configs": [
+          {
+            "enabled": false,
+            "name": "bash",
+            "permission_policy": {
+              "type": "always_allow"
+            },
+            "type": "bash"
+          }
+        ],
+        "default_config": {
+          "enabled": true,
+          "permission_policy": {
+            "type": "always_allow"
+          }
+        },
+        "type": "agent_toolset_20260401"
+      }
+    ],
+    "multiagent": {
+      "advisor": {
+        "type": "disabled"
+      },
+      "subagents": {
+        "inline_agents": {
+          "type": "disabled"
+        },
+        "predefined_agents": [
+          {
+            "id": "agent_01PwzDi1RHvd1We6WdhVHnsh",
+            "type": "agent",
+            "version": 1
+          },
+          {
+            "id": "agent_01T7yJoNBgFt6mvkSsLta1eL",
+            "type": "agent",
+            "version": 1
+          }
+        ],
+        "type": "enabled"
+      },
+      "type": "multiagent_20261001",
+      "workflows": {
+        "type": "disabled"
+      }
+    }
+  },
+  "Prosecutor": {
+    "id": "agent_01PwzDi1RHvd1We6WdhVHnsh",
+    "version": 1,
+    "name": "Prosecutor",
+    "model": {
+      "effort": {
+        "type": "high"
+      },
+      "id": "claude-sonnet-5-5",
+      "speed": "standard"
+    },
+    "system": "You are the Prosecutor in a greenwashing review. For the brand you are given, find up to 4 of its recent environmental marketing claims and the strongest independent evidence AGAINST each (regulator rulings, NGO investigations, data contradicting the claim, vague terms banned by EU 2024/825 or the UK CMA Green Claims Code). Keep it cheap: at most 4 web_search and 4 web_fetch calls. Quote exact wording, give URLs and dates. Use relative dates (last ~12 months). Defamation-safe wording; never allege intent unless quoting a ruling. Reply with a compact bullet list: claim | brand source URL + date | the case against | evidence URLs.",
+    "tools": [
+      {
+        "configs": [
+          {
+            "enabled": false,
+            "name": "bash",
+            "permission_policy": {
+              "type": "always_allow"
+            },
+            "type": "bash"
+          }
+        ],
+        "default_config": {
+          "enabled": true,
+          "permission_policy": {
+            "type": "always_allow"
+          }
+        },
+        "type": "agent_toolset_20260401"
+      }
+    ],
+    "multiagent": null
+  },
+  "Defender": {
+    "id": "agent_01T7yJoNBgFt6mvkSsLta1eL",
+    "version": 1,
+    "name": "Defender",
+    "model": {
+      "effort": {
+        "type": "high"
+      },
+      "id": "claude-sonnet-5-5",
+      "speed": "standard"
+    },
+    "system": "You are the Defender in a greenwashing review. For the brand (and any claims) you are given, find the strongest substantiation FOR each claim: third-party certifications, verified data (SBTi, CDP, audited reports), scope qualifiers the brand did include. Keep it cheap: at most 4 web_search and 4 web_fetch calls. Quote exact wording, give URLs and dates. Use relative dates (last ~12 months). Defamation-safe wording; never allege intent unless quoting a ruling. Be honest: say \"no substantiation found\" when there is none. Reply with a compact bullet list: claim | the case for | evidence URLs.",
+    "tools": [
+      {
+        "configs": [
+          {
+            "enabled": false,
+            "name": "bash",
+            "permission_policy": {
+              "type": "always_allow"
+            },
+            "type": "bash"
+          }
+        ],
+        "default_config": {
+          "enabled": true,
+          "permission_policy": {
+            "type": "always_allow"
+          }
+        },
+        "type": "agent_toolset_20260401"
+      }
+    ],
+    "multiagent": null
+  }
+}

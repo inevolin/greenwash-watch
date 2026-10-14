@@ -38,7 +38,7 @@ End your final message with ONLY a fenced \`\`\`json block:
     multiagent: { type: 'multiagent_20261001', subagents: { type: 'enabled', inline_agents: { type: 'disabled' }, predefined_agents: [{ type: 'agent', id: E.PROSECUTOR_ID }, { type: 'agent', id: E.DEFENDER_ID }] }, workflows: { type: 'disabled' } } })).id);
   if (!E.DEPLOYMENT_ID) save('DEPLOYMENT_ID', (await call('POST', '/deployments?beta=true', { name: 'Greenwash Watch daily rotation', agent: E.JUDGE_ID, environment_id: E.ENVIRONMENT_ID,
     resources: [{ type: 'memory_store', memory_store_id: E.MEMORY_STORE_ID, access: 'read_write', instructions: 'Brand memory. watchlist.md lists brands; rotation.md holds the next index.' }],
-    initial_events: [{ type: 'user.message', content: [{ type: 'text', text: 'Scheduled daily check. Open rotation.md and watchlist.md in the memory store, take the ONE brand at the next index, run your normal Prosecutor/Defender/Judge review for it, update brands/<slug>.md, then increment the index in rotation.md and append a log line (date, brand). Keep cost low.' }] }],
+    initial_events: [{ type: 'user.message', content: [{ type: 'text', text: 'This is a scheduled rotation run (daily check, as of today). Open rotation.md and watchlist.md in the memory store, take the ONE brand at the next index, run your normal Prosecutor/Defender/Judge review for it, update brands/<slug>.md, then increment the index in rotation.md and append a log line (date, brand). Keep cost low.' }] }],
     schedule: { type: 'cron', expression: '0 8 * * *', timezone: 'Europe/Stockholm' },
     budget: { type: 'limit', max_list_cost: { amount: '300', currency: 'USD' } } })).id);
 })().catch((e) => { console.error(e.message); process.exit(1); });

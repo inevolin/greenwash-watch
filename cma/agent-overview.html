@@ -1,0 +1,163 @@
+<!doctype html>
+<!-- Generated from build-sheet.json following launch-your-agent/references/overview-template.html (Apache-2.0 template) -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greenwash Watch: agent schema</title>
+<link rel="stylesheet" href="overview.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="ident">
+      <div class="sigil">🤖</div>
+      <div>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <h1>Greenwash Watch · Judge</h1>
+          <span class="statepill live"><span class="led live"></span>DEPLOYED · LIVE</span>
+        </div>
+        <div class="byline">Claude Managed Agent · Ilja Nevolin · Greenwash Watch · created 2026-10-14</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-k">Model</div><div class="stat-v">claude-sonnet-5-5</div></div>
+      <div class="stat"><div class="stat-k">Runs</div><div class="stat-v">Daily 08:00 <span class="dim">Stockholm</span> + on demand</div></div>
+      <div class="stat"><div class="stat-k">Agent</div><div class="stat-v"><a class="console" href="https://platform.claude.com/workspaces/default/agents/agent_01XFVUQ3UbpUEaZPwawiLwAZ">agent_01XFVUQ3UbpUEaZPwawiLwAZ</a> <span class="dim">v2</span></div></div>
+      <div class="stat"><div class="stat-k">Deployment</div><div class="stat-v"><a class="console" href="https://platform.claude.com/workspaces/default/deployments/depl_01St7qqkGwZ5XXVhpRN2bCQx">depl_01St7qqkGwZ5XXVhpRN2bCQx</a></div></div>
+    </div>
+  </div>
+
+  <p class="problem">Brands make green claims faster than regulators can check them. Greenwash Watch checks a brand's environmental claims against independent evidence and real rulings, and keeps watching a 40-brand list every day.</p>
+
+  <p class="lane-label">System schema</p>
+  <div class="pipeline">
+    <div class="col">
+      <p class="col-title">Trigger</p>
+      <div class="node key grow">
+        <div class="node-head"><span class="node-icon">🗓️</span><h2>Deployment</h2><span class="node-meta">cron · <b>0 8 * * *</b></span></div>
+        <div class="node-body">
+          <div class="field"><div class="field-k">schedule · expression / timezone</div><strong>Every day · 08:00</strong> <span class="sub small">Europe/Stockholm</span></div>
+          <div class="field"><div class="field-k">Status</div><span class="tag good">active · manual run verified</span> <span class="tag">budget 300¢/run</span></div>
+          <div class="field"><div class="field-k">initial_events</div><p class="small sub">user.message: "This is a scheduled rotation run": take ONE brand at the next index in rotation.md, run the review, advance the index. Relative dates only.</p></div>
+        </div>
+        <div class="node-foot">▶️ Also on demand: the website creates a ▶️ session per visitor search (<code>POST /v1/sessions</code>), streams it over SSE and lets visitors steer it with <code>user.message</code> events.</div>
+      </div>
+    </div>
+    <div class="joint" aria-hidden="true"></div>
+    <div class="col">
+      <p class="col-title">Worker</p>
+      <div class="env-frame">
+        <span class="env-tab">📦 environment <a class="console" href="https://platform.claude.com/workspaces/default/environments/env_01UwzhHUeUcGJMJpuHeo7uDT">env_01UwzhHUeUcGJMJpuHeo7uDT</a> · type: cloud · networking: unrestricted · packages: none</span>
+        <div class="node key">
+          <div class="node-head"><span class="node-icon">🤖</span><h2>Agent: Judge</h2><span class="node-meta"><b>claude-sonnet-5-5</b> · v2</span></div>
+          <div class="node-body">
+            <div class="field"><div class="field-k">system · the job</div>
+              <p class="small">Reads brand memory, delegates to Prosecutor (case against) then Defender (case for), weighs both, rates each claim holds up / unsubstantiated / misleading with the rule, updates <code>brands/&lt;slug&gt;.md</code>, writes <code>/mnt/session/outputs/report.json</code>.</p></div>
+            <div class="field"><div class="field-k">multiagent · multiagent_20261001 · subagents.predefined_agents</div>
+              <span class="tag on">⚖️ Prosecutor <a class="console" href="https://platform.claude.com/workspaces/default/agents/agent_01PwzDi1RHvd1We6WdhVHnsh">agent_01PwzDi1RHvd1We6WdhVHnsh</a> v1</span><span class="tag on">🛡️ Defender <a class="console" href="https://platform.claude.com/workspaces/default/agents/agent_01T7yJoNBgFt6mvkSsLta1eL">agent_01T7yJoNBgFt6mvkSsLta1eL</a> v1</span><span class="tag">inline_agents: disabled</span><span class="tag">workflows: disabled</span></div>
+          </div>
+        </div>
+        <div class="attach-grid">
+          <div class="attach">
+            <h3>🛠️ Tools</h3>
+            <p><code>tools[] · agent_toolset_20260401</code> · always_allow<br><span class="tag on">web_search</span><span class="tag on">web_fetch</span><span class="tag on">read</span><span class="tag on">write</span><span class="tag on">edit</span><span class="tag on">glob</span><span class="tag on">grep</span><span class="tag">bash (disabled)</span></p>
+          </div>
+          <div class="attach">
+            <h3>🧠 Memory store</h3>
+            <p><code>resources[] · memory_store</code> <span class="tag good">read_write</span> <strong>Greenwash Brand Memory</strong> <span class="mono small">memstore_01K8DZq1a2rV294ixvUnpyUj</span>: <code>brands/&lt;slug&gt;.md</code> (last checked, verdicts, what changed), <code>watchlist.md</code>, <code>rotation.md</code>.</p>
+          </div>
+          <div class="attach ghost">
+            <h3>🔌 Connectors &amp; 🔐 vaults</h3>
+            <p><code>mcp_servers[]</code> + <code>vault_ids[]</code>: empty, public web only. Slack/email alerts are v2 in the rail.</p>
+          </div>
+          <div class="attach ghost">
+            <h3>📄 Skills</h3>
+            <p><code>skills[]</code>: empty; JSON report output.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="joint" aria-hidden="true"></div>
+    <div class="col">
+      <p class="col-title">Output &amp; grading</p>
+      <div class="node">
+        <div class="node-head"><span class="node-icon">📤</span><h2>Deliverable</h2><span class="node-meta">final message + files api</span></div>
+        <div class="node-body">
+          <p class="small"><code>report.json</code>: claims, verdicts, prosecution/defense, evidence. Shown on nevolin.be/greenwashing-watchdog.</p>
+          <div class="field"><div class="field-k">Guardrails in effect</div>
+            <span class="tag">max_iterations: 1</span><span class="tag">budget 300¢/session</span><span class="tag">no write connectors</span><span class="tag">rate limits 2/h/IP, 20/day</span></div>
+        </div>
+      </div>
+      <div class="node key grow">
+        <div class="node-head"><span class="node-icon">🎯</span><h2>Outcome</h2><span class="node-meta"><b>user.define_outcome</b> · max_iterations 1</span></div>
+        <div class="node-body">
+          <p class="small sub" style="margin-bottom:8px;">Your definition of done: <code>rubric.content</code> (outcome.md v2, mode-neutral), graded by the platform every run.</p>
+          <ol class="rubric small"><li>Does every assessed claim quote the brand's own words, with a fetched URL and date?
+</li><li>Does every verdict (holds up / unsubstantiated / misleading) cite at least one independent source that contradicts or supports it, plus the relevant rule (UK CMA Green Claims Code, ASA CAP Code, EU Directive 2024/825 / UCPD, FTC Green Guides, or a national court ruling)?
+</li><li>Is the wording defamation-safe: framed as "our assessment", with no allegations of intent or dishonesty beyond what a cited ruling found, and with "unsubstantiated" used where evidence is lacking?
+</li><li>Was brand memory used: brands/<slug>.md read (if present) and updated with the last-checked date, verdicts and what changed? Rotation applies ONLY if the kickoff says "scheduled rotation run": then exactly the next brand in rotation.md was processed and the index advanced. On any other run, rotation.md must be untouched; do not penalise the absence of rotation.
+</li><li>Is the EU Green Claims Directive (if mentioned) described accurately as a pending proposal, not law, and are there no fabricated rulings or URLs?
+</li><li>Is every claim that a regulator or court has ruled on rated misleading or unsubstantiated, for a reason consistent with that ruling?
+</li></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lane-grid">
+    <div class="lane">
+      <div class="lane-head"><span class="node-icon">📜</span><h2>Sessions · run log</h2><span class="lane-meta">6 runs · 3 evals</span></div>
+      <div class="lane-body"><div class="overflow">
+        <table>
+          <thead><tr><th>Run</th><th>Session</th><th>Rubric</th><th>Verdict</th><th>Note</th></tr></thead>
+          <tbody>
+            <tr><td>1 · Shell</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_01S9TehnSpHwEF9aCCrP8JV8">sesn_01S9TehnSpHwEF9aCCrP8JV8</a></td><td>v1</td><td><span class="tag">max_iterations_reached</span></td><td class="sub">Single agent (legacy). 10 claims.</td></tr>
+            <tr><td>2 · 🗓️ manual deployment run · Shell</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_015K7EEcYdFAJXidQqThc2GD">sesn_015K7EEcYdFAJXidQqThc2GD</a></td><td>—</td><td><span class="tag good">completed</span></td><td class="sub">Judge v1 + subagents; rotation advanced; ingested by the site.</td></tr>
+            <tr><td>3 · Ryanair</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_01LUZXMyUa9zLxn23sWYP1CH">sesn_01LUZXMyUa9zLxn23sWYP1CH</a></td><td>v1</td><td><span class="tag">max_iterations_reached</span></td><td class="sub">Steered mid-run ("find rulings"). Grader penalised rotation; that led to rubric v2.</td></tr>
+            <tr><td>🧪 eval · innocent</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_01RLHLGPKLu3Y4RhFz2tvu8B">sesn_01RLHLGPKLu3Y4RhFz2tvu8B</a></td><td>v2</td><td><span class="tag good">PASS · misleading</span></td><td class="sub">Judge v2. Grader: max_iterations_reached (criterion 1: dates on undated pages).</td></tr>
+            <tr><td>🧪 eval · persil</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_0127tXotKtadDAE7t57igaLW">sesn_0127tXotKtadDAE7t57igaLW</a></td><td>v2</td><td><span class="tag good">PASS · misleading</span></td><td class="sub">Judge v2. Grader: max_iterations_reached (criterion 1: dates on undated pages).</td></tr>
+            <tr><td>🧪 eval · klm</td><td class="mono"><a class="console" href="https://platform.claude.com/workspaces/default/sessions/sesn_01GVXdNBBLway9chaQYWETWr">sesn_01GVXdNBBLway9chaQYWETWr</a></td><td>v2</td><td><span class="tag good">PASS · misleading</span></td><td class="sub">Judge v2. Grader: max_iterations_reached (criterion 1: dates on undated pages).</td></tr>
+          </tbody>
+        </table>
+      </div></div>
+    </div>
+    <div class="lane">
+      <div class="lane-head"><span class="node-icon">🧪</span><h2>Evals</h2><span class="lane-meta">10 real rulings · 3 run</span></div>
+      <div class="lane-body"><div class="overflow">
+        <table>
+          <thead><tr><th>Case</th><th>Known-good answer</th><th>Last verdict</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">innocent</td><td>ASA, upheld (23 Feb 2022)</td><td><span class="tag good">PASS · v2</span></td></tr>
+            <tr><td class="mono">persil</td><td>ASA, upheld (31 Aug 2022)</td><td><span class="tag good">PASS · v2</span></td></tr>
+            <tr><td class="mono">klm</td><td>Amsterdam District Court, misleading/unlawful (20 Mar 2024, ECLI:NL:RB</td><td><span class="tag good">PASS · v2</span></td></tr>
+            <tr><td class="mono">shell-uk</td><td>ASA, upheld on omission (7 Jun 2023)</td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">eni</td><td>Italian AGCM, €5m fine (Jan 2020, PS11400)</td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">etihad</td><td>ASA, upheld (6 Dec 2023)</td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">volkswagen</td><td>Federal Court (ACCC case), A$125m penalty; Full Court upheld it (9 Apr</td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">h-m</td><td>Dutch ACM, **commitment decision** (2022). H&M removed the claims and </td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">hsbc-uk</td><td>ASA, upheld on omission (19 Oct 2022)</td><td><span class="tag">held back</span></td></tr>
+            <tr><td class="mono">apple</td><td>Frankfurt Regional Court, injunction (26 Aug 2025, 3-06 O 8/24; **not </td><td><span class="tag">held back</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small sub" style="margin:.5em 0 0;">innocent, persil and klm run against Judge v2; the other 7 are held back and re-run before promoting a new version.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="lane full">
+    <div class="lane-head"><span class="node-icon">🧭</span><h2>Next directions</h2><span class="lane-meta">the version rail</span></div>
+    <div class="lane-body"><div class="rail">
+      <div class="ver"><div class="ver-tag">v1</div><div class="ver-what">Weekly leaderboard</div><div class="ver-why">Needs weeks of stored verdicts</div><div class="ver-how">2nd deployment <span class="mono">0 9 * * 1</span> reading <span class="mono">brands/*.md</span></div></div>
+      <div class="ver"><div class="ver-tag">v2</div><div class="ver-what">Slack/email alert on "misleading"</div><div class="ver-why">Write action + credential</div><div class="ver-how">Mock outbox → Slack MCP + 🔐 vault, <span class="mono">always_ask</span></div></div>
+      <div class="ver"><div class="ver-tag">v3</div><div class="ver-what">Lock networking</div><div class="ver-why">Empty allowed_hosts blocks web tools</div><div class="ver-how"><span class="mono">networking: limited</span> + <span class="mono">allowed_hosts</span></div></div>
+      <div class="ver"><div class="ver-tag">v4</div><div class="ver-what">3 iterations on scheduled runs</div><div class="ver-why">Demo cost cap</div><div class="ver-how">Deployment kickoff → <span class="mono">user.define_outcome</span></div></div>
+      <div class="ver"><div class="ver-tag">always</div><div class="ver-what">Re-run evals before promoting</div><div class="ver-why">Process habit</div><div class="ver-how"><span class="mono">evals/run-evals.sh</span></div></div>
+    </div></div>
+  </div>
+
+  <footer>generated from build-sheet.json · live runs &amp; traces: <a href="https://platform.claude.com/workspaces/default/agents">open the console</a> (your key's workspace; swap "default" if yours differs)</footer>
+</div>
+</body>
+</html>

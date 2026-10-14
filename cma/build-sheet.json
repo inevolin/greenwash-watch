@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "founder": "Ilja Nevolin",
+    "company": "Greenwash Watch (hackathon)",
+    "problem": "Brands make green claims faster than regulators can check them; I want an agent that checks a brand's environmental claims against independent evidence and real rulings, and keeps watching a list of brands every day.",
+    "created": "2026-10-14",
+    "skill_version": "0.3.0"
+  },
+  "agent": {
+    "name": "Judge (coordinator) + Prosecutor + Defender",
+    "model": "claude-sonnet-5-5",
+    "model_rationale": "Sonnet over Opus: a public demo with per-visitor runs, so speed and cost (~$1\u20131.50 per multi-agent run) matter more than the last bit of quality.",
+    "version": 2,
+    "system_summary": "Judge reads brand memory, delegates the case against to Prosecutor and the case for to Defender (multiagent_20261001, predefined subagents only), weighs both, gives each claim holds up / unsubstantiated / misleading with the rule, updates brands/<slug>.md, writes /mnt/session/outputs/report.json and ends with a JSON block.",
+    "never_dos": [
+      "Never allege intent or dishonesty beyond what a cited ruling found",
+      "Never cite the EU Green Claims Directive as law",
+      "Never touch rotation.md outside a scheduled rotation run",
+      "Never contact brands or post anywhere: research and assessment only"
+    ],
+    "subagents": [
+      {
+        "name": "Prosecutor",
+        "role": "strongest independent evidence against each claim"
+      },
+      {
+        "name": "Defender",
+        "role": "strongest substantiation for each claim"
+      }
+    ]
+  },
+  "outcome": {
+    "description": "first_prompt.txt with {{BRAND}} filled in",
+    "rubric_criteria": [
+      "Does every assessed claim quote the brand's own words, with a fetched URL and date?\n",
+      "Does every verdict (holds up / unsubstantiated / misleading) cite at least one independent source that contradicts or supports it, plus the relevant rule (UK CMA Green Claims Code, ASA CAP Code, EU Directive 2024/825 / UCPD, FTC Green Guides, or a national court ruling)?\n",
+      "Is the wording defamation-safe: framed as \"our assessment\", with no allegations of intent or dishonesty beyond what a cited ruling found, and with \"unsubstantiated\" used where evidence is lacking?\n",
+      "Was brand memory used: brands/<slug>.md read (if present) and updated with the last-checked date, verdicts and what changed? Rotation applies ONLY if the kickoff says \"scheduled rotation run\": then exactly the next brand in rotation.md was processed and the index advanced. On any other run, rotation.md must be untouched; do not penalise the absence of rotation.\n",
+      "Is the EU Green Claims Directive (if mentioned) described accurately as a pending proposal, not law, and are there no fabricated rulings or URLs?\n",
+      "Is every claim that a regulator or court has ruled on rated misleading or unsubstantiated, for a reason consistent with that ruling?\n"
+    ],
+    "max_iterations": 1,
+    "max_iterations_note": "1 instead of the skill default 3: public demo with a $3 per-session budget cap"
+  },
+  "tools": {
+    "toolset": "agent_toolset_20260401",
+    "enabled": [
+      "read",
+      "write",
+      "edit",
+      "glob",
+      "grep",
+      "web_search",
+      "web_fetch"
+    ],
+    "disabled": [
+      "bash"
+    ],
+    "permission_overrides": [
+      "always_allow (read-only research; no write connectors)"
+    ],
+    "custom_tools": []
+  },
+  "connections": {
+    "mcp_servers": [],
+    "vault_credentials": [],
+    "github": null,
+    "notes": "Public web only."
+  },
+  "skills": [],
+  "memory": {
+    "stores": [
+      {
+        "name": "Greenwash Brand Memory",
+        "access": "read_write",
+        "purpose": "One file per brand (brands/<slug>.md: last checked, verdicts, what changed) + watchlist.md (40 brands) + rotation.md (next index) for the daily run."
+      }
+    ]
+  },
+  "environment": {
+    "name": "greenwash-watch-env-open",
+    "type": "cloud",
+    "networking": "unrestricted",
+    "allowed_hosts": [],
+    "packages": {},
+    "note": "limited networking with empty allowed_hosts blocked web_search/web_fetch, so unrestricted + bash disabled"
+  },
+  "schedule": {
+    "mode": "scheduled + on-demand",
+    "cron": "0 8 * * *",
+    "timezone": "Europe/Stockholm",
+    "human": "Every day at 08:00 Stockholm time, one brand from the watchlist rotation",
+    "kickoff": "user.message: scheduled rotation run (relative dates only)",
+    "budget_cents_per_run": 300
+  },
+  "evals": {
+    "cases": [
+      {
+        "name": "innocent",
+        "input": "evals/innocent/input.md",
+        "expected": "evals/innocent/expected.md",
+        "last_verdict": "v2: PASS (misleading); grader max_iterations_reached"
+      },
+      {
+        "name": "persil",
+        "input": "evals/persil/input.md",
+        "expected": "evals/persil/expected.md",
+        "last_verdict": "v2: PASS (misleading); grader max_iterations_reached"
+      },
+      {
+        "name": "klm",
+        "input": "evals/klm/input.md",
+        "expected": "evals/klm/expected.md",
+        "last_verdict": "v2: PASS (misleading); grader max_iterations_reached"
+      },
+      {
+        "name": "shell-uk",
+        "input": "evals/shell-uk/input.md",
+        "expected": "evals/shell-uk/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "eni",
+        "input": "evals/eni/input.md",
+        "expected": "evals/eni/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "etihad",
+        "input": "evals/etihad/input.md",
+        "expected": "evals/etihad/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "volkswagen",
+        "input": "evals/volkswagen/input.md",
+        "expected": "evals/volkswagen/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "h-m",
+        "input": "evals/h-m/input.md",
+        "expected": "evals/h-m/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "hsbc-uk",
+        "input": "evals/hsbc-uk/input.md",
+        "expected": "evals/hsbc-uk/expected.md",
+        "last_verdict": null
+      },
+      {
+        "name": "apple",
+        "input": "evals/apple/input.md",
+        "expected": "evals/apple/expected.md",
+        "last_verdict": null
+      }
+    ],
+    "notes": "Every case is a real, verified regulator or court ruling from docs/evals.md. innocent, persil and klm run first; the rest are held back as a regression check."
+  },
+  "defaults_applied": {
+    "iteration_bound": "max_iterations 1 + $3 budget per session",
+    "write_actions": "None: the agent only researches and writes its own memory"
+  },
+  "interface": {
+    "who": "Hackathon judges and public visitors",
+    "how": "https://nevolin.be/greenwashing-watchdog/ \u2014 live SSE timeline per agent, steering buttons, debate view, under-the-hood diagram; Console for traces."
+  },
+  "next_directions": [
+    {
+      "what": "Weekly leaderboard from stored verdicts",
+      "why_deferred": "Needs weeks of daily runs in memory",
+      "how": "Second deployment 0 9 * * 1 reading brands/*.md, writes leaderboard.md"
+    },
+    {
+      "what": "Slack/email alert when a brand turns misleading",
+      "why_deferred": "Write action + credential not on hand",
+      "how": "Mock outbox first; then Slack MCP + vault, always_ask"
+    },
+    {
+      "what": "Lock networking",
+      "why_deferred": "limited + empty allowed_hosts blocks web tools",
+      "how": "networking limited + allowed_hosts + allowed_domains"
+    },
+    {
+      "what": "max_iterations 3 on scheduled runs",
+      "why_deferred": "Demo cost cap",
+      "how": "Deployment initial_events -> user.define_outcome"
+    },
+    {
+      "what": "Opus advisor for the Judge",
+      "why_deferred": "Scheduled for a later version",
+      "how": "multiagent.advisor enabled"
+    },
+    {
+      "what": "Re-run evals before promoting a version",
+      "why_deferred": "Process habit",
+      "how": "evals/run-evals.sh <version> <cases>"
+    }
+  ],
+  "ids": {
+    "ENVIRONMENT_ID": "env_01UwzhHUeUcGJMJpuHeo7uDT",
+    "JUDGE_ID": "agent_01XFVUQ3UbpUEaZPwawiLwAZ",
+    "JUDGE_VERSION": "2",
+    "PROSECUTOR_ID": "agent_01PwzDi1RHvd1We6WdhVHnsh",
+    "DEFENDER_ID": "agent_01T7yJoNBgFt6mvkSsLta1eL",
+    "MEMORY_STORE_ID": "memstore_01K8DZq1a2rV294ixvUnpyUj",
+    "DEPLOYMENT_ID": "depl_01St7qqkGwZ5XXVhpRN2bCQx",
+    "LEGACY_SINGLE_AGENT_ID": "agent_01AJ55xegdyCJDREwcNxWAQ7"
+  }
+}
