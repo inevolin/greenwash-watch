@@ -52,6 +52,7 @@ async function loadCases() {
   render('All');
 }
 function render(ind) {
+  $('#grid').removeAttribute('aria-busy');
   $('#grid').innerHTML = cases.filter((c) => ind === 'All' || c.industry === ind).map((c, i) => `
     <button class="card" data-id="${esc(c.id)}" style="--i:${i}" aria-label="${esc(c.brand)}: ${esc(c.verdict)}">
       <div class="inner">

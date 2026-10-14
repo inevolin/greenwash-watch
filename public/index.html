@@ -95,7 +95,7 @@
   <h2 id="casesH" class="kinetic">Caught out.</h2>
   <p class="sub">10 real rulings. Tap a file for the full ruling.</p>
   <div id="filters" class="filters" role="toolbar" aria-label="Filter by industry"></div>
-  <div id="grid" class="grid"></div>
+  <div id="grid" class="grid" aria-busy="true"><div class="sk-card" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="sk-card" aria-hidden="true"><i></i><i></i><i></i><i></i></div><div class="sk-card" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
 </section>
 
 <!-- RESEARCH -->
@@ -128,7 +128,7 @@
   </div>
   <div id="report"></div>
   <div id="cma-debate" class="cma-debate"></div>
-  <div class="recent-wrap"><h3 class="mono">Recently investigated</h3><div id="recent" class="recent"></div></div>
+  <div class="recent-wrap"><h3 class="mono">Recently investigated</h3><div id="recent" class="recent"><span class="sk-chip"></span><span class="sk-chip"></span><span class="sk-chip"></span></div></div>
 </section>
 
 <!-- UNDER THE HOOD (cma.js) -->
@@ -141,7 +141,14 @@
 </section>
 </main>
 
-<footer><span>Verdicts are AI assessments of public evidence, not legal findings.</span><a class="cbadge" href="https://www.anthropic.com/" target="_blank" rel="noopener"><img src="claude-mark.svg" alt="" width="18" height="18"><span>Built with <b>Claude Managed Agents</b><i>·</i>Claude Founder House Stockholm</span></a><a href="https://github.com/inevolin/greenwash-watch" target="_blank" rel="noopener">Source ↗</a></footer>
+<footer class="ft">
+  <div class="ft-top">
+    <div class="ft-brand"><span class="ft-logo"><i></i>Greenwash <em>Watch</em></span><p>An AI watchdog that checks green claims against the evidence. Verdicts are our assessment of public evidence, not legal findings.</p></div>
+    <a class="ft-badge" href="https://www.anthropic.com/" target="_blank" rel="noopener"><img src="claude-mark.svg" alt="" width="28" height="28"><span><small>Built at</small><b>Claude Founder House Stockholm</b><em>with Claude Managed Agents</em></span></a>
+  </div>
+  <nav class="ft-links" aria-label="Footer"><a href="#cases">Case files</a><a href="#leaderboard">Leaderboard</a><a href="#research">Investigate</a><a href="#hood">Under the hood</a><a href="https://github.com/inevolin/greenwash-watch" target="_blank" rel="noopener">Source ↗</a></nav>
+  <div class="ft-base"><span>© 2026 Greenwash Watch</span><span>EU 2024/825 · UK CMA Green Claims Code</span></div>
+</footer>
 
 <dialog id="modal"><button class="x" aria-label="Close">×</button><div id="modalBody"></div></dialog>
 <script src="vendor/gsap.min.js"></script>

@@ -39,6 +39,6 @@
   }
   document.addEventListener('click', (e) => { const r = e.target.closest('#leaderboard .lb-row[data-slug], #leaderboard .lb-worst'); if (r) open(r.dataset.slug, r); });
   document.addEventListener('keydown', (e) => { if (e.key !== 'Enter' && e.key !== ' ') return; const r = e.target.closest && e.target.closest('#leaderboard .lb-row[data-slug]'); if (r) { e.preventDefault(); open(r.dataset.slug, r); } });
-  const watch = () => { const l = document.querySelector('#leaderboard .lb-list'); if (!l) return setTimeout(watch, 300); new MutationObserver(decorate).observe(l, { childList: true }); decorate(); };
+  const watch = () => { const l = document.querySelector('#leaderboard .lb-list'); if (!l) return setTimeout(watch, 300); if (!l.children.length) l.innerHTML = '<li class="lb-sk"></li>'.repeat(4); new MutationObserver(decorate).observe(l, { childList: true }); decorate(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { load(); watch(); }); else { load(); watch(); }
 })();
