@@ -10,7 +10,14 @@
     if (String(u).endsWith('api/research') && o && o.method === 'POST') r.clone().json().then((j) => j.jobId && !j.cached && start(j.jobId)).catch(() => {});
     return r;
   };
-  function lane(agent) { return document.querySelector(`.cma-lane[data-agent="${agent}"] ol`) || document.querySelector('.cma-lane[data-agent="Judge"] ol'); }
+  // 4th lane: Compliance Consultant (injected so index.html stays untouched).
+  function ensureLane() {
+    const lanes = $('#cma-lanes'); if (!lanes || lanes.querySelector('[data-agent="Compliance Consultant"]')) return;
+    const d = document.createElement('div'); d.className = 'cma-lane cma-lane-consultant'; d.dataset.agent = 'Compliance Consultant';
+    d.innerHTML = '<h4>Consultant</h4><ol></ol>'; lanes.appendChild(d); lanes.classList.add('four');
+  }
+  document.addEventListener('DOMContentLoaded', ensureLane); ensureLane();
+  function lane(agent) { if (/consult/i.test(agent || '')) agent = 'Compliance Consultant'; return document.querySelector(`.cma-lane[data-agent="${agent}"] ol`) || document.querySelector('.cma-lane[data-agent="Judge"] ol'); }
   function add(e) {
     const li = document.createElement('li'); li.className = 'k-' + e.kind;
     const who = e.kind === 'handoff' ? `→ ${esc(e.to || 'subagent')}: ` : e.kind === 'report' ? `↩ report: ` : e.kind === 'steer' ? '🧭 ' : '';
@@ -20,7 +27,7 @@
     if (e.kind === 'grade' && e.result) $('#cma-outcome').textContent = `Outcome grader: ${e.result}`;
   }
   function start(id) {
-    jobId = id; $('#cma-live').classList.remove('hidden'); $('#cma-debate').innerHTML = ''; $('#cma-outcome').textContent = '';
+    ensureLane(); jobId = id; $('#cma-live').classList.remove('hidden'); $('#cma-debate').innerHTML = ''; $('#cma-outcome').textContent = '';
     document.querySelectorAll('.cma-lane ol').forEach((o) => (o.innerHTML = ''));
     document.querySelectorAll('#cma-steer button').forEach((b) => (b.disabled = false));
     if (es) es.close();
@@ -37,10 +44,17 @@
     hood();
   }
   function debate(r) {
-    if (!r || !(r.claims || []).some((c) => c.prosecution || c.defense)) return;
+    if (!r || !(r.claims || []).some((c) => c.prosecution || c.defense || c.rewrite)) return;
     $('#cma-debate').innerHTML = `<h3>The debate</h3>${r.changes_since_last ? `<p><b>Since last check:</b> ${esc(r.changes_since_last)}</p>` : ''}` + r.claims.map((c) =>
-      `<div class="cma-claim"><q>${esc(c.claim)}</q> → <b>${esc(c.verdict)}</b><div class="cma-pd"><div class="p">⚖️ Prosecutor: ${esc(c.prosecution)}</div><div class="d">🛡️ Defender: ${esc(c.defense)}</div></div></div>`).join('');
+      `<div class="cma-claim"><q>${esc(c.claim)}</q> → <b>${esc(c.verdict)}</b><div class="cma-pd"><div class="p">⚖️ Prosecutor: ${esc(c.prosecution)}</div><div class="d">🛡️ Defender: ${esc(c.defense)}</div></div>${ba(c)}</div>`).join('') + rewrites(r);
   }
+  // Before/After: original claim struck through, then the Consultant's compliant rewrite.
+  function ba(c) {
+    if (!c.rewrite) return '';
+    const ev = (c.evidence_needed || []).filter(Boolean);
+    return `<div class="cma-ba"><div class="before"><span>Before</span><s>${esc(c.claim)}</s></div><div class="after"><span>After · Consultant rewrite</span><p>${esc(c.rewrite)}</p>${ev.length ? `<small>Evidence needed:</small><ul>${ev.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}</div></div>`;
+  }
+  function rewrites() { return ''; }
   document.addEventListener('click', async (ev) => {
     const b = ev.target.closest('#cma-steer button'); if (!b || !jobId) return;
     b.disabled = true;
@@ -59,6 +73,7 @@
       node('Agent · Judge (coordinator)', a.judge?.id, ag(a.judge) + ' · multiagent_20261001'),
       node('Subagent · Prosecutor', a.prosecutor?.id, ag(a.prosecutor)),
       node('Subagent · Defender', a.defender?.id, ag(a.defender)),
+      node('Subagent · Compliance Consultant', a.consultant?.id, ag(a.consultant)),
       node('Environment', h.environment?.id, `networking: ${esc(h.environment?.networking || '')}`),
       node('Session', lr.session_id, lr.brand ? `last: ${esc(lr.brand)}` : 'none yet', !lr.finished),
       node('Events', 'SSE /events/stream', 'primary + one stream per subagent thread'),
@@ -70,4 +85,25 @@
     $('#hood-stats').innerHTML = s.cost_usd != null ? [['Cost', '$' + s.cost_usd.toFixed(2)], ['Output tokens', s.output_tokens], ['Input tokens', s.input_tokens], ['Web searches', s.web_searches], ['Active', Math.round(s.active_seconds || 0) + 's'], ['Duration', Math.round(s.duration_seconds || 0) + 's']].map(([k, v]) => `<div><b>${esc(v ?? '—')}</b>${k}</div>`).join('') : '<div>No live run yet</div>';
   }
   document.addEventListener('DOMContentLoaded', hood);
+  // ---------- Leaderboard ----------
+  let lb = null, ind = 'All';
+  function lbMount() {
+    if ($('#leaderboard')) return;
+    const sec = document.createElement('section'); sec.id = 'leaderboard'; sec.className = 'lb';
+    sec.innerHTML = '<div class="lb-wrap"><p class="lb-kicker">Integrity leaderboard</p><h2>Who backs up their green claims?</h2><p class="lb-sub">Score 0–100 from the latest review: holds up = 1, unsubstantiated = 0.5, misleading = 0. Our assessment, not a legal finding.</p><div class="lb-filter" role="tablist"></div><ol class="lb-list"></ol></div>';
+    const anchor = $('#hood') || $('#cases'); anchor ? anchor.parentNode.insertBefore(sec, anchor) : document.body.appendChild(sec);
+    const nav = document.querySelector('header nav'); if (nav && !nav.querySelector('[href="#leaderboard"]')) { const a = document.createElement('a'); a.href = '#leaderboard'; a.textContent = 'Leaderboard'; nav.insertBefore(a, nav.lastElementChild); }
+  }
+  function lbRender() {
+    const f = $('#leaderboard .lb-filter'), l = $('#leaderboard .lb-list'); if (!lb || !f) return;
+    f.innerHTML = ['All', ...lb.industries].map((x) => `<button role="tab" aria-selected="${x === ind}" data-ind="${esc(x)}">${esc(x)}</button>`).join('');
+    const rows = lb.brands.filter((b) => ind === 'All' || b.industry === ind);
+    l.innerHTML = rows.length ? rows.map((b, i) => { const t = b.tally || {}, h = b.history || [], prev = h.length > 1 ? h[h.length - 2].score : null, d = prev == null ? '' : b.score - prev;
+      const tone = b.score >= 70 ? 'hi' : b.score >= 40 ? 'mid' : 'lo';
+      return `<li class="lb-row"><span class="lb-rank">${i + 1}</span><div class="lb-main"><div class="lb-top"><b>${esc(b.brand)}</b><em>${esc(b.industry)}</em><span class="lb-score">${b.score}</span></div><div class="lb-bar"><i class="${tone}" style="--w:${b.score}%;--d:${i * 70}ms"></i></div><small>${t['holds up'] || 0} hold up · ${t.unsubstantiated || 0} unsubstantiated · ${t.misleading || 0} misleading · checked ${esc(b.last_checked)}${h.length > 1 ? ` · ${h.length} runs (${h.map((x) => x.score).join(' → ')})${d ? ` <span class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : ''}` : ''}</small></div></li>`; }).join('') : '<li class="lb-empty">No brands in this industry yet.</li>';
+    requestAnimationFrame(() => requestAnimationFrame(() => l.querySelectorAll('.lb-bar i').forEach((x) => x.classList.add('go'))));
+  }
+  async function lbLoad() { lbMount(); try { lb = await (await ofetch('api/leaderboard')).json(); lbRender(); } catch {} }
+  document.addEventListener('click', (e) => { const b = e.target.closest('#leaderboard .lb-filter button'); if (b) { ind = b.dataset.ind; lbRender(); } });
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lbLoad); else lbLoad();
 })();

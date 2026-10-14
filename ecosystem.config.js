@@ -14,7 +14,7 @@ module.exports = {
       DATA_DIR: '/root/apps/greenwash-watch-data',
       RATE_PER_IP_PER_HOUR: '2',
       RATE_GLOBAL_PER_DAY: '20',
-      BUDGET_CENTS: '300',
+      BUDGET_CENTS: '400',
     },
   }],
 };
