@@ -178,17 +178,33 @@ dialog::backdrop{background:rgba(17,17,16,.55);backdrop-filter:blur(4px) graysca
 dl{display:grid;grid-template-columns:90px 1fr;gap:14px 20px;margin:28px 0 0}dt{font:500 11px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--mute);padding-top:4px}dd{margin:0;font:400 1.05rem/1.5 var(--serif)}
 .x{position:absolute;right:14px;top:14px;background:none;border:0;font-size:28px;cursor:pointer;color:var(--ink)}
 
-/* CMA sections (timeline, steering, debate, under the hood): same language */
-[id*="timeline" i],[id*="events" i],[class*="timeline"]{font-family:var(--mono)}
-[class*="timeline"] li,[id*="timeline" i] li,[id*="events" i] li{list-style:none;border-left:1px solid var(--ink);padding:6px 0 6px 18px;position:relative;font-size:12px}
-[class*="timeline"] li::before,[id*="timeline" i] li::before,[id*="events" i] li::before{content:"";position:absolute;left:-4px;top:12px;width:7px;height:7px;background:var(--red)}
-[id*="steer" i] input,[class*="steer"] input,[id*="steer" i] textarea{border:0;border-bottom:1px solid var(--ink);background:transparent;font:400 1.2rem var(--serif);padding:8px 0;outline:0}
-[id*="steer" i] button,[class*="steer"] button,[id*="debate" i] button,[id*="hood" i] button{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;background:var(--ink);color:var(--paper);border:0;padding:10px 16px;cursor:pointer}
-[id*="debate" i],[class*="debate"]{display:grid;gap:1px;background:var(--rule)}
-[id*="debate" i]>*,[class*="debate"]>*{background:var(--card);padding:22px}
-[class*="prosecut"]{border-top:4px solid var(--red)}[class*="defen"]{border-top:4px solid var(--ok)}[class*="judge"]{border-top:4px solid var(--ink)}
-[id*="hood" i] h2,[class*="hood"] h2{font-size:clamp(3rem,9vw,8.5rem)}
-[id*="hood" i] code,[class*="hood"] code{font:12px var(--mono);background:var(--paper2);padding:1px 5px}
+/* CMA live panel + under the hood, in the forensic language (overrides cma.css) */
+main .cma-steer{gap:8px;margin:20px 0;font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+main .cma-steer button{border:1px solid var(--ink);border-radius:0;background:transparent;color:var(--ink);padding:9px 14px;font:500 12px var(--mono);letter-spacing:.06em;text-transform:none;transition:background .3s,color .3s}
+main .cma-steer button:hover:not(:disabled){background:var(--ink);color:var(--paper)}
+main .cma-lanes{gap:0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+main .cma-lane{background:transparent;border:0;border-radius:0;border-right:1px solid var(--rule);padding:18px 18px 18px 0;max-height:380px}
+main .cma-lane+.cma-lane{padding-left:18px}main .cma-lane:last-child{border-right:0}
+main .cma-lane h4{font:400 2rem/1 var(--display);margin:0 0 14px;display:flex;align-items:center;gap:.4em}
+main .cma-lane h4::before{content:"";width:10px;height:10px;background:var(--ink)}
+main .cma-lane[data-agent=Prosecutor] h4::before{background:var(--red)}main .cma-lane[data-agent=Defender] h4::before{background:var(--ok)}
+main .cma-lane ol{font:12px/1.55 var(--mono)}
+main .cma-lane li{border-left:1px solid var(--ink);background:none!important;padding:6px 0 6px 14px;margin:0;position:relative}
+main .cma-lane li::before{content:"";position:absolute;left:-4px;top:12px;width:7px;height:7px;background:var(--paper);border:1px solid var(--ink)}
+main .cma-lane li.k-handoff::before,main .cma-lane li.k-report::before{background:var(--red);border-color:var(--red)}
+main .cma-lane li.k-grade::before{background:var(--ink)}main .cma-lane li.k-steer::before{background:var(--amber);border-color:var(--amber)}
+main .cma-outcome{font:400 1.6rem/1.2 var(--display);margin:22px 0}
+main .cma-debate .cma-pd{gap:0;border:1px solid var(--ink);font:400 .95rem/1.5 var(--serif)}
+main .cma-pd div{border-radius:0;padding:16px;background:var(--card)!important}main .cma-pd .p{border-top:4px solid var(--red)}main .cma-pd .d{border-top:4px solid var(--ok);border-left:1px solid var(--ink)}
+main .hood{background:var(--ink);color:var(--paper)}main .hood .sub{color:#9c978c}main .hood .kicker{color:var(--red)}
+main .hood-diagram{justify-content:flex-start;gap:0;margin-top:60px;border-top:1px solid #444}
+main .hood-node{background:transparent;color:var(--paper);border:0;border-right:1px solid #444;border-radius:0;padding:22px;min-width:200px;flex:1}
+main .hood-node h5{font:400 1.6rem var(--display);margin-bottom:8px}main .hood-node small{color:#9c978c;font:11px var(--mono)}
+main .hood-node code{background:#222;color:#e9e4d8;font:11px var(--mono);padding:1px 4px}
+@keyframes hoodPulseR{50%{box-shadow:inset 0 3px 0 var(--red)}}main .hood-node.pulse{animation:cmaIn .5s both,hoodPulseR 2.4s ease-in-out infinite}
+main .hood-stats{justify-content:flex-start;gap:0;margin-top:0;border-top:1px solid #444}main .hood-stats div{text-align:left;padding:22px 40px 0 0}
+main .hood-stats b{font:400 clamp(2.5rem,6vw,5rem)/1 var(--display)}
+@media(max-width:760px){main .cma-lane,main .cma-lane+.cma-lane{border-right:0;border-bottom:1px solid var(--rule);padding:16px 0}main .hood-node{border-right:0;border-bottom:1px solid #444;flex-basis:100%}}
 
 footer{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:40px var(--pad);border-top:1px solid var(--ink);font:500 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 
