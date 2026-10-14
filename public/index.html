@@ -2,92 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Greenwash Watch: evidence-based green-claim checks</title>
-<meta name="description" content="An AI watchdog that checks brands' environmental claims against evidence.">
+<title>Greenwash Watch</title>
+<meta name="description" content="An AI watchdog that checks green claims against evidence.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='14' cy='14' r='9' fill='none' stroke='%23127a45' stroke-width='3'/><path d='M20 20l8 8' stroke='%23127a45' stroke-width='3'/></svg>">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header class="nav">
-  <a class="logo" href="#top"><svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true"><circle cx="14" cy="14" r="9" fill="none" stroke="currentColor" stroke-width="3"/><path d="M20.5 20.5 28 28" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M10 17c0-5 3-8 8-8-1 5-3 8-8 8z" fill="#7CFFB2"/></svg> Greenwash&nbsp;Watch</a>
-  <nav><a href="#why">Why</a><a href="#rules">Rules</a><a href="#cases">Cases</a><a href="#research" class="btn sm">Check a brand</a></nav>
+  <a class="logo" href="#top"><svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true"><circle cx="14" cy="14" r="9" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M20.5 20.5 28 28" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M10 17c0-5 3-8 8-8-1 5-3 8-8 8z" fill="#ff7a45"/></svg>Greenwash Watch</a>
+  <nav><a href="#cases">Rulings</a><a href="#research" class="btn sm">Check a brand</a></nav>
 </header>
 
 <main id="top">
+<!-- HERO: factory hiding behind a leaf mask; magnifier reveals the smoke -->
 <section class="hero">
   <div class="hero-text">
-    <span class="pill">Built on Claude Managed Agents · hackathon demo</span>
-    <h1>Green claims, <span class="grad">checked against evidence.</span></h1>
-    <p class="lead">Greenwashing means making a product or company look more environmentally friendly than the evidence supports. Greenwash Watch is an AI agent that reads a brand's own claims, looks for independent evidence, and gives each claim an assessment: <b>holds up</b>, <b>unsubstantiated</b> or <b>misleading</b>. Every assessment links to its sources.</p>
-    <div class="cta"><a class="btn" href="#research">Check a brand</a><a class="btn ghost" href="#cases">See real rulings</a></div>
+    <h1><span class="line">Green on</span> <span class="line">the outside?</span></h1>
+    <p class="lead">An AI watchdog that checks brands' green claims against the evidence.</p>
+    <a class="btn" href="#research">Check a brand →</a>
   </div>
-  <div class="hero-art" aria-hidden="true">
-    <svg viewBox="0 0 400 340">
-      <defs>
-        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2dd47e"/><stop offset="1" stop-color="#0e7a4a"/></linearGradient>
-        <linearGradient id="smoke" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#4a5560"/><stop offset="1" stop-color="#4a5560" stop-opacity="0"/></linearGradient>
-      </defs>
-      <!-- factory -->
-      <rect x="40" y="200" width="200" height="110" rx="6" fill="#1b2a24"/>
-      <rect x="70" y="120" width="26" height="90" fill="#22332c"/><rect x="130" y="140" width="26" height="70" fill="#22332c"/>
-      <circle class="puff p1" cx="83" cy="105" r="18" fill="url(#smoke)"/><circle class="puff p2" cx="143" cy="125" r="14" fill="url(#smoke)"/>
-      <!-- green paint leaf over it -->
-      <path class="leaf" d="M120 300c-10-80 60-150 170-160-5 100-70 170-170 160z" fill="url(#g1)" opacity=".9"/>
-      <path d="M130 292c40-50 90-90 150-140" stroke="#0b3d27" stroke-width="3" fill="none"/>
-      <!-- magnifier -->
-      <g class="lens"><circle cx="300" cy="230" r="48" fill="rgba(124,255,178,.08)" stroke="#7CFFB2" stroke-width="7"/><path d="M335 265l40 40" stroke="#7CFFB2" stroke-width="10" stroke-linecap="round"/></g>
-      <text x="270" y="236" fill="#7CFFB2" font-size="14" font-family="ui-monospace,monospace">CO₂?</text>
-    </svg>
-  </div>
+  <svg class="hero-art" viewBox="0 0 520 460" role="img" aria-label="A factory hidden behind a leaf mask, with a magnifying glass revealing the smoke behind it">
+    <defs>
+      <clipPath id="lensClip"><circle class="lens-clip" cx="360" cy="190" r="70"/></clipPath>
+      <radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd8a8"/><stop offset="1" stop-color="#ffd8a8" stop-opacity="0"/></radialGradient>
+    </defs>
+    <circle cx="380" cy="120" r="120" fill="url(#sun)"/>
+    <ellipse cx="260" cy="420" rx="230" ry="22" fill="#e7e2d3"/>
+    <!-- factory -->
+    <g class="factory">
+      <rect x="120" y="260" width="250" height="160" rx="8" fill="#3d4a44"/>
+      <rect x="160" y="150" width="34" height="120" rx="4" fill="#52605a"/>
+      <rect x="230" y="180" width="30" height="90" rx="4" fill="#52605a"/>
+      <rect x="300" y="200" width="28" height="70" rx="4" fill="#52605a"/>
+      <g fill="#ffd166"><rect x="145" y="300" width="30" height="26" rx="3"/><rect x="200" y="300" width="30" height="26" rx="3"/><rect x="255" y="300" width="30" height="26" rx="3"/><rect x="310" y="300" width="30" height="26" rx="3"/></g>
+    </g>
+    <!-- the "green mask": a big friendly leaf covering the factory -->
+    <g class="mask">
+      <path d="M95 425C70 270 190 140 410 120c10 170-90 300-315 305z" fill="#2fbf71"/>
+      <path d="M110 410C190 320 280 240 395 140" stroke="#127a45" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M190 330l-40-45M250 270l-30-60M310 215l-10-55M215 305l60 10M275 245l60 5" stroke="#127a45" stroke-width="5" stroke-linecap="round"/>
+      <g class="eye"><circle cx="235" cy="315" r="17" fill="#fff"/><circle class="pupil" cx="239" cy="317" r="7.5" fill="#1d2a24"/></g>
+      <g class="eye"><circle cx="290" cy="280" r="17" fill="#fff"/><circle class="pupil" cx="294" cy="282" r="7.5" fill="#1d2a24"/></g>
+      <path d="M250 360q32 18 62-14" stroke="#0e5c34" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- what the lens reveals: smoke behind the mask -->
+    <g clip-path="url(#lensClip)">
+      <rect x="0" y="0" width="520" height="460" fill="#cfd4d1"/>
+      <rect x="160" y="150" width="34" height="270" fill="#3d4a44"/><rect x="230" y="180" width="30" height="240" fill="#3d4a44"/><rect x="300" y="200" width="28" height="220" fill="#3d4a44"/>
+      <g fill="#6b7570" class="smoke"><circle cx="177" cy="120" r="30"/><circle cx="210" cy="80" r="38"/><circle cx="245" cy="140" r="28"/><circle cx="300" cy="110" r="40"/><circle cx="350" cy="160" r="34"/><circle cx="400" cy="120" r="44"/><circle cx="420" cy="210" r="36"/><circle cx="330" cy="230" r="30"/></g>
+    </g>
+    <g class="lens">
+      <circle class="lens-ring" cx="360" cy="190" r="70" fill="none" stroke="#1d2a24" stroke-width="12"/>
+      <path class="lens-handle" d="M410 240l55 55" stroke="#ff7a45" stroke-width="20" stroke-linecap="round"/>
+    </g>
+  </svg>
 </section>
 
-<section id="why" class="section">
-  <h2>Why it matters</h2>
-  <p class="sub">Misleading green claims make it hard for people to choose more sustainable products, and they undercut companies whose claims are honest. These figures come from regulators:</p>
+<!-- STATS -->
+<section class="section stats-sec reveal">
+  <h2>Claims are cheap.</h2>
   <div class="stats">
-    <a class="stat" href="https://environment.ec.europa.eu/topics/circular-economy/green-claims_en" target="_blank" rel="noopener"><b>53%</b><span>of green claims examined in the EU gave vague, misleading or unfounded information</span><small>European Commission ↗</small></a>
-    <a class="stat" href="https://environment.ec.europa.eu/topics/circular-economy/green-claims_en" target="_blank" rel="noopener"><b>40%</b><span>of claims had no supporting evidence</span><small>European Commission ↗</small></a>
-    <a class="stat" href="https://environment.ec.europa.eu/topics/circular-economy/green-claims_en" target="_blank" rel="noopener"><b>½</b><span>of green labels offer weak or non-existent verification</span><small>European Commission ↗</small></a>
-    <a class="stat" href="https://www.gov.uk/government/news/global-sweep-finds-40-of-firms-green-claims-could-be-misleading" target="_blank" rel="noopener"><b>40%</b><span>of green claims made online could be misleading consumers (global website sweep)</span><small>UK CMA ↗</small></a>
-  </div>
-  <div class="how">
-    <div><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="20" cy="20" r="12" fill="none" stroke="#7CFFB2" stroke-width="4"/><path d="M29 29l12 12" stroke="#7CFFB2" stroke-width="4" stroke-linecap="round"/></svg><h3>1 · Find</h3><p>The agent uses <code>web_search</code> to find the brand's recent claims, and quotes them word for word.</p></div>
-    <div><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="6" width="32" height="36" rx="4" fill="none" stroke="#7CFFB2" stroke-width="4"/><path d="M15 17h18M15 25h18M15 33h10" stroke="#7CFFB2" stroke-width="4"/></svg><h3>2 · Verify</h3><p>It uses <code>web_fetch</code> to read reports, NGO analyses and rulings, and needs at least one independent source per claim.</p></div>
-    <div><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 26l10 10 22-24" fill="none" stroke="#7CFFB2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>3 · Assess</h3><p>It gives each claim one of three verdicts, worded as "our assessment" and never as an accusation, and remembers each brand between runs.</p></div>
+    <figure class="stat reveal"><b class="count" data-to="53" data-suffix="%">0</b><figcaption>of EU green claims are vague, misleading or unfounded</figcaption><a href="https://environment.ec.europa.eu/topics/circular-economy/green-claims_en" target="_blank" rel="noopener">European Commission ↗</a></figure>
+    <figure class="stat reveal"><b class="count" data-to="40" data-suffix="%">0</b><figcaption>have no supporting evidence at all</figcaption><a href="https://environment.ec.europa.eu/topics/circular-economy/green-claims_en" target="_blank" rel="noopener">European Commission ↗</a></figure>
+    <figure class="stat reveal"><b class="count" data-to="40" data-suffix="%">0</b><figcaption>of online green claims could mislead</figcaption><a href="https://www.gov.uk/government/news/global-sweep-finds-40-of-firms-green-claims-could-be-misleading" target="_blank" rel="noopener">UK CMA ↗</a></figure>
   </div>
 </section>
 
-<section id="rules" class="section">
-  <h2>The rules of the game</h2>
-  <div class="rules">
-    <article><span class="tag in">In force</span><h3>EU Directive 2024/825</h3><p>The "Empowering Consumers for the Green Transition" directive applies from <b>27 Sep 2026</b>. It bans generic claims (such as "eco-friendly") that lack proof of recognised excellent environmental performance, "neutral" claims based on offsets, and sustainability labels without certification.</p><a href="https://eur-lex.europa.eu/eli/dir/2024/825/oj" target="_blank" rel="noopener">EUR-Lex ↗</a></article>
-    <article><span class="tag in">Guidance</span><h3>UK CMA Green Claims Code</h3><p>The code sets six principles: claims must be truthful and accurate, clear and unambiguous, must not omit or hide information, must make fair comparisons, must consider the full life cycle, and must be substantiated.</p><a href="https://www.gov.uk/government/publications/green-claims-code-making-environmental-claims" target="_blank" rel="noopener">GOV.UK ↗</a></article>
-    <article><span class="tag pend">Stalled</span><h3>EU Green Claims Directive</h3><p>This is still a proposal (COM(2023)166). The Commission announced plans to withdraw it in June 2025, but it has not been formally withdrawn. Parliament's tracker lists it as "Blocked".</p><a href="https://www.europarl.europa.eu/legislative-train/theme-a-european-green-deal/file-substantiating-green-claims" target="_blank" rel="noopener">EP Legislative Train ↗</a></article>
+<!-- HOW: three illustrated steps -->
+<section class="section how reveal">
+  <h2>How it works</h2>
+  <div class="steps">
+    <figure class="step reveal">
+      <svg viewBox="0 0 160 120" aria-hidden="true" class="ill roller-ill">
+        <rect x="30" y="40" width="22" height="70" fill="#52605a" rx="3"/><rect x="70" y="55" width="20" height="55" fill="#52605a" rx="3"/>
+        <g class="paint"><rect x="24" y="30" width="34" height="80" fill="#2fbf71" rx="4"/></g>
+        <g class="roller"><rect x="16" y="14" width="50" height="16" rx="8" fill="#ff7a45"/><path d="M66 22h20v-14h30" stroke="#1d2a24" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+      </svg>
+      <figcaption><b>1 · Find</b> the brand's own green claims.</figcaption>
+    </figure>
+    <figure class="step reveal">
+      <svg viewBox="0 0 160 120" aria-hidden="true" class="ill docs-ill">
+        <rect class="doc d1" x="30" y="20" width="60" height="80" rx="6" fill="#fff" stroke="#1d2a24" stroke-width="4"/>
+        <rect class="doc d2" x="70" y="28" width="60" height="80" rx="6" fill="#fff" stroke="#1d2a24" stroke-width="4"/>
+        <path d="M82 50h36M82 64h36M82 78h22" stroke="#2fbf71" stroke-width="5" stroke-linecap="round"/>
+      </svg>
+      <figcaption><b>2 · Verify</b> against independent sources.</figcaption>
+    </figure>
+    <figure class="step reveal">
+      <svg viewBox="0 0 160 120" aria-hidden="true" class="ill stamp-ill">
+        <g class="stamp"><rect x="45" y="20" width="70" height="30" rx="6" fill="#ff7a45"/><rect x="72" y="50" width="16" height="20" fill="#1d2a24"/><rect x="40" y="70" width="80" height="14" rx="4" fill="#1d2a24"/></g>
+        <rect x="30" y="92" width="100" height="18" rx="4" fill="#fff" stroke="#1d2a24" stroke-width="3"/>
+        <text class="mark" x="80" y="106" text-anchor="middle" font-size="12" font-weight="800" fill="#d64545">MISLEADING</text>
+      </svg>
+      <figcaption><b>3 · Rate</b> holds up, unsubstantiated or misleading.</figcaption>
+    </figure>
   </div>
 </section>
 
-<section id="cases" class="section">
-  <h2>Real rulings: the eval set</h2>
-  <p class="sub">Ten real regulator and court decisions, one or more per industry. We fetched and checked every source. The agent is scored on whether it reaches the same conclusion as each ruling.</p>
+<!-- RULES (compact) -->
+<section class="section rules reveal">
+  <h2>The rules are tightening.</h2>
+  <div class="chips">
+    <a class="rule in" href="https://eur-lex.europa.eu/eli/dir/2024/825/oj" target="_blank" rel="noopener"><i></i>EU Directive 2024/825 · applies from 27 Sep 2026</a>
+    <a class="rule in" href="https://www.gov.uk/government/publications/green-claims-code-making-environmental-claims" target="_blank" rel="noopener"><i></i>UK CMA Green Claims Code</a>
+    <a class="rule pend" href="https://www.europarl.europa.eu/legislative-train/theme-a-european-green-deal/file-substantiating-green-claims" target="_blank" rel="noopener"><i></i>EU Green Claims Directive · stalled proposal</a>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section id="cases" class="section reveal">
+  <h2>Caught out.</h2>
+  <p class="sub">10 real rulings. Hover or tap a card to see the verdict.</p>
   <div id="filters" class="filters" role="toolbar" aria-label="Filter by industry"></div>
   <div id="grid" class="grid"></div>
 </section>
 
-<section id="research" class="section">
-  <h2>Check a brand</h2>
-  <p class="sub">This starts a Claude Managed Agents session that researches the brand live. <span id="modeBadge" class="tag"></span></p>
+<!-- RESEARCH -->
+<section id="research" class="section research reveal">
+  <h2>Your turn.</h2>
+  <p class="sub"><span id="modeBadge" class="tag"></span> <span id="limits"></span></p>
   <form id="form" class="search">
-    <input id="brand" name="brand" placeholder="e.g. Persil, Shell, Apple…" autocomplete="off" required maxlength="80">
+    <input id="brand" name="brand" placeholder="Try a brand…" autocomplete="off" required maxlength="80" aria-label="Brand name">
     <button class="btn" type="submit">Investigate</button>
   </form>
-  <div id="progress" class="progress hidden"><div class="bar"><i></i></div><ol id="steps"></ol></div>
+  <div id="progress" class="progress hidden" aria-live="polite">
+    <svg class="scan" viewBox="0 0 300 120" aria-hidden="true">
+      <g class="belt"><rect x="0" y="92" width="300" height="10" rx="5" fill="#e7e2d3"/></g>
+      <g class="docs-run"><rect x="10" y="50" width="34" height="42" rx="4" fill="#fff" stroke="#1d2a24" stroke-width="3"/><rect x="110" y="50" width="34" height="42" rx="4" fill="#fff" stroke="#1d2a24" stroke-width="3"/><rect x="210" y="50" width="34" height="42" rx="4" fill="#fff" stroke="#1d2a24" stroke-width="3"/></g>
+      <g class="scan-lens"><circle cx="150" cy="58" r="30" fill="rgba(47,191,113,.15)" stroke="#1d2a24" stroke-width="6"/><path d="M172 80l20 20" stroke="#ff7a45" stroke-width="10" stroke-linecap="round"/></g>
+    </svg>
+    <p id="stepNow" class="step-now">Starting…</p>
+    <details><summary>Agent log</summary><ol id="steps"></ol></details>
+  </div>
   <div id="report"></div>
-  <h3 style="margin-top:40px">Recent research</h3><p class="sub" id="limits"></p><div id="recent" class="recent"></div>
+  <div class="recent-wrap"><h3>Recently checked</h3><div id="recent" class="recent"></div></div>
 </section>
 </main>
 
-<footer><p>Greenwash Watch is a hackathon demo. The verdicts are the agent's assessments of public evidence, not legal findings. Every case on this page links to its primary source.</p></footer>
+<footer>Verdicts are AI assessments of public evidence, not legal findings. · <a href="https://github.com/inevolin/greenwash-watch" target="_blank" rel="noopener">Source</a></footer>
 
-<dialog id="modal"><button class="x" aria-label="Close" onclick="this.closest('dialog').close()">×</button><div id="modalBody"></div></dialog>
+<dialog id="modal"><button class="x" aria-label="Close">×</button><div id="modalBody"></div></dialog>
 <script src="app.js"></script>
 </body>
 </html>
