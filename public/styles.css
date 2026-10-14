@@ -561,3 +561,17 @@ main .cma-steer>*{flex:0 0 auto}
 @media (max-width:768px) and (prefers-reduced-motion:reduce){
   .card{animation:none;opacity:1;transform:none}
 }
+
+/* mobile v6b: leaderboard + consultant before/after */
+@media (max-width:768px){
+  .lb-filter{margin:0 calc(-1*var(--pad));padding:4px var(--pad) 8px;scrollbar-width:none}
+  .lb-filter::-webkit-scrollbar{display:none}
+  .lb-filter button{min-height:44px;padding:10px 14px}
+  .lb-row{padding:14px;gap:12px;border-radius:16px}
+  .lb-top b,.lb-top strong{overflow-wrap:anywhere}
+  .lb-score{font-size:1.15rem}
+  .cma-ba{grid-template-columns:1fr;gap:10px;font-size:.92rem}
+  .cma-ba>div{border-width:1px;border-color:var(--rule);border-radius:14px;padding:12px 14px}
+  .cma-ba s,.cma-ba p,.cma-ba li{overflow-wrap:anywhere}
+  main .cma-debate .cma-claim{padding:16px 0;border-bottom:1px solid var(--rule)}
+}
