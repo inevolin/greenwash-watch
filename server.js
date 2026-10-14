@@ -243,10 +243,11 @@ async function ingestDeploymentRuns() {
       if (rep.brand && (rep.claims || []).length) { rep.scheduled = true; persist(rep.brand, rep, r.session_id, 'scheduled'); }
       done.add(r.session_id); fs.writeFileSync(doneF, JSON.stringify([...done]));
       lastSched = { run_id: r.id, session_id: r.session_id, brand: rep.brand, trigger: r.trigger_context?.type, cost_usd: Number(s.usage?.list_cost?.amount || 0) / 100, created_at: r.created_at };
+      fs.writeFileSync(path.join(DATA_DIR, '_lastsched.json'), JSON.stringify(lastSched));
     }
   } catch (e) { console.error('ingest', e.message); }
 }
-let lastSched = null;
+let lastSched = (() => { try { return JSON.parse(fs.readFileSync(path.join(DATA_DIR, '_lastsched.json'), 'utf8')); } catch { return null; } })();
 if (!MOCK && DEPLOYMENT_ID) { setTimeout(ingestDeploymentRuns, 5000); setInterval(ingestDeploymentRuns, 10 * 60e3); }
 
 // "Under the hood": live IDs + versions, cached 5 min.
