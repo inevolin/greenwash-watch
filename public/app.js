@@ -19,6 +19,9 @@ const prettyStep = (s) => {
   }
   return s;
 };
+const BRAND_MAP = { nestle: 'Nestlé', 'nestlé': 'Nestlé', 'h&m': 'H&M', 'h-m': 'H&M', hm: 'H&M', bp: 'BP', hsbc: 'HSBC', 'hsbc uk': 'HSBC UK', klm: 'KLM', 'coca-cola': 'Coca-Cola', 'coca cola': 'Coca-Cola', ikea: 'IKEA', 'l\'oreal': 'L\'Oréal', loreal: 'L\'Oréal', 'l\'oréal': 'L\'Oréal', danone: 'Danone', unilever: 'Unilever', totalenergies: 'TotalEnergies', easyjet: 'easyJet' };
+const gwBrand = (b) => { const s = String(b || '').replace(/\s*\(.*?\)\s*/g, ' ').trim(); const k = s.toLowerCase(); if (BRAND_MAP[k]) return BRAND_MAP[k]; return s === k ? s.replace(/(^|[\s-])(\p{L})/gu, (m, a, c) => a + c.toUpperCase()) : s; };
+window.gwBrand = gwBrand;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* scroll reveal + counters */
@@ -97,15 +100,23 @@ async function health() {
   const b = $('#modeBadge');
   b.textContent = h.mode === 'mock' ? 'Demo data' : 'Live agent';
   b.className = 'tag ' + h.mode;
-  if (h.limits && h.mode === 'live') $('#limits').textContent = `${h.limits.perIpPerHour} searches/hour · ${Math.max(0, h.limits.globalPerDay - h.limits.usedToday)} left today`;
+  if (h.limits && h.mode === 'live') $('#limits').textContent = `${h.limits.perIpPerHour} per hour · ${Math.max(0, h.limits.globalPerDay - h.limits.usedToday)} of ${h.limits.globalPerDay} left today`;
 }
 async function loadRecent() {
-  const all = await (await fetch('api/recent')).json();
-  // merge duplicates by display name, e.g. "Shell (Shell plc)" and "Shell" (list is newest first; keep the first)
+  const [all, lb] = await Promise.all([fetch('api/recent').then((r) => r.json()), fetch('api/leaderboard').then((r) => r.json()).catch(() => null)]);
+  const score = {}; ((lb && lb.brands) || []).forEach((b) => (score[b.slug] = b.score, score[gwBrand(b.brand).toLowerCase()] = b.score));
+  // merge duplicates by display name (list is newest first; keep the first)
   const seen = new Set(), list = [];
-  for (const r of all) { const k = String(r.brand || '').replace(/\s*\(.*?\)\s*/g, ' ').trim().toLowerCase(); if (seen.has(k)) continue; seen.add(k); list.push({ ...r, brand: String(r.brand || '').replace(/\s*\(.*?\)\s*/g, ' ').trim() }); }
-  $('#recent').innerHTML = list.length ? list.map((r) => `<button class="chip" data-slug="${esc(r.slug)}">${esc(r.brand)} <small>${r.claims} claims</small></button>`).join('') : '<span class="sub">Nothing yet.</span>';
+  for (const r of all) { const name = gwBrand(r.brand), k = name.toLowerCase(); if (seen.has(k)) continue; seen.add(k); list.push({ ...r, brand: name, score: score[r.slug] ?? score[k] }); }
+  const tone = (s) => (s == null ? '' : s >= 70 ? 'hi' : s >= 40 ? 'mid' : 'lo');
+  $('#recent').innerHTML = list.length ? list.map((r) => `<button class="chip ${tone(r.score)}" data-slug="${esc(r.slug)}"${r.score != null ? ` title="Integrity score ${r.score}/100"` : ''}><i class="dot" aria-hidden="true"></i>${esc(r.brand)}<small>${r.score != null ? r.score : r.claims + ' claims'}</small></button>`).join('') : '<span class="sub">Nothing yet.</span>';
 }
+/* rotating suggestion placeholder */
+(() => {
+  const inp = $('#brand'), names = ['Unilever', 'IKEA', 'Volkswagen', 'Danone', 'Ryanair', 'Apple', 'Zara', 'TotalEnergies'];
+  let i = 0; inp.placeholder = 'Try “' + names[0] + '”';
+  if (!reduced) setInterval(() => { if (inp.value || document.activeElement === inp) return; i = (i + 1) % names.length; inp.classList.add('ph-out'); setTimeout(() => { inp.placeholder = 'Try “' + names[i] + '”'; inp.classList.remove('ph-out'); }, 220); }, 2600);
+})();
 $('#recent').addEventListener('click', async (e) => {
   const b = e.target.closest('.chip'); if (!b) return;
   const rec = await (await fetch('api/recent/' + b.dataset.slug)).json();

@@ -1,7 +1,7 @@
 // Leaderboard extras: worst-offender banner, monogram badges, tap a row to open its report.
 (() => {
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const clean = (b) => String(b || '').replace(/\s*\(.*?\)\s*/g, ' ').trim();
+  const clean = (b) => (window.gwBrand ? window.gwBrand(b) : String(b || '').replace(/\s*\(.*?\)\s*/g, ' ').trim());
   const mono = (b) => { const w = clean(b).replace(/&/g, '').replace(/[^\p{L}\p{N} ]/gu, ' ').split(/\s+/).filter(Boolean); return ((w[0] || '?')[0] + (w.length > 1 ? w[1][0] : (w[0] || '')[1] || '')).toUpperCase(); };
   const hue = (s) => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) % 360; return h; };
   let data = null; const bySlug = {};
@@ -20,7 +20,7 @@
   function decorate() {
     banner();
     document.querySelectorAll('#leaderboard .lb-row').forEach((row) => {
-      const name = row.querySelector('.lb-top b'); if (!name) return;
+      const name = row.querySelector('.lb-top b'); if (!name) return; if (name.textContent !== clean(name.textContent)) name.textContent = clean(name.textContent);
       const b = bySlug[clean(name.textContent).toLowerCase()];
       if (!row.querySelector('.lb-mono')) row.querySelector('.lb-rank').insertAdjacentHTML('afterend', `<span class="lb-mono" style="--h:${hue(name.textContent)}" aria-hidden="true">${esc(mono(name.textContent))}</span>`);
       if (b && !row.dataset.slug) { row.dataset.slug = b.slug; row.tabIndex = 0; row.setAttribute('role', 'button'); row.setAttribute('aria-label', `Open report: ${clean(b.brand)}`); }
