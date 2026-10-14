@@ -72,7 +72,8 @@ function recent() {
 
 // Leaderboard: 0-100 integrity score per brand from saved reports (holds up=1, unsubstantiated=0.5, misleading=0).
 const INDUSTRY = (() => { const m = {}; try { for (const l of fs.readFileSync(path.join(__dirname, 'docs', 'brands.md'), 'utf8').split('\n')) { const c = l.split('|').map((x) => x.trim()); if (c.length > 3 && c[1] && c[1] !== 'Industry' && !/^-+$/.test(c[1])) for (const b of c[2].split(/,(?![^(]*\))/)) { const n = norm(b.replace(/\(.*\)/, '')); if (n) m[n] = c[1]; } } } catch {} return m; })();
-function industryOf(brand) { const n = norm(String(brand || '').replace(/\(.*\)/, '')); if (INDUSTRY[n]) return INDUSTRY[n]; const k = Object.keys(INDUSTRY).find((x) => n.startsWith(x + '-') || n.split('-')[0] === x.split('-')[0]); return k ? INDUSTRY[k] : 'Other'; }
+const EXTRA_INDUSTRY = { maersk: 'Shipping', 'a-p-moller-maersk': 'Shipping' };
+function industryOf(brand) { const e = EXTRA_INDUSTRY[norm(String(brand || '').replace(/\(.*\)/, ''))]; if (e) return e; const n = norm(String(brand || '').replace(/\(.*\)/, '')); if (INDUSTRY[n]) return INDUSTRY[n]; const k = Object.keys(INDUSTRY).find((x) => n.startsWith(x + '-') || n.split('-')[0] === x.split('-')[0]); return k ? INDUSTRY[k] : 'Other'; }
 const PTS = { 'holds up': 1, unsubstantiated: 0.5, misleading: 0 };
 function leaderboard() {
   const by = {};
