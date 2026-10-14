@@ -5,7 +5,7 @@ const vClass = (v) => (/hold/i.test(v) ? 'ok' : /unsub|commit/i.test(v) ? 'uns' 
 
 let cases = [];
 async function loadCases() {
-  cases = await (await fetch('/api/cases')).json();
+  cases = await (await fetch('api/cases')).json();
   const inds = ['All', ...new Set(cases.map((c) => c.industry))];
   $('#filters').innerHTML = inds.map((i, n) => `<button data-i="${esc(i)}" class="${n ? '' : 'on'}">${esc(i)}</button>`).join('');
   $('#filters').onclick = (e) => {
@@ -38,19 +38,19 @@ $('#grid').addEventListener('click', (e) => {
 $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') e.target.close(); });
 
 async function health() {
-  const h = await (await fetch('/api/health')).json();
+  const h = await (await fetch('api/health')).json();
   const b = $('#modeBadge');
   b.textContent = h.mode === 'mock' ? 'Mock mode: example data' : 'Live: Claude Managed Agents';
   b.className = 'tag ' + h.mode;
   if (h.limits && h.mode === 'live') $('#limits').textContent = `Previously researched brands open instantly from the cache. New live searches are limited to ${h.limits.perIpPerHour} per visitor per hour and ${h.limits.globalPerDay} per day in total (${h.limits.usedToday} used today).`;
 }
 async function loadRecent() {
-  const list = await (await fetch('/api/recent')).json();
+  const list = await (await fetch('api/recent')).json();
   $('#recent').innerHTML = list.length ? list.map((r) => `<button class="chip" data-slug="${esc(r.slug)}">${esc(r.brand)} <small>${r.claims} claims · ${new Date(r.saved_at).toLocaleDateString()}</small></button>`).join('') : '<p class="sub">No saved reports yet.</p>';
 }
 $('#recent').addEventListener('click', async (e) => {
   const b = e.target.closest('.chip'); if (!b) return;
-  const rec = await (await fetch('/api/recent/' + b.dataset.slug)).json();
+  const rec = await (await fetch('api/recent/' + b.dataset.slug)).json();
   $('#progress').className = 'progress hidden';
   showReport(rec.report, false);
   $('#report').insertAdjacentHTML('afterbegin', `<div class="banner" style="background:#163326;color:var(--acc)">Saved report from ${esc(new Date(rec.saved_at).toLocaleString())}</div>`);
@@ -64,11 +64,11 @@ $('#form').addEventListener('submit', async (e) => {
   $('#report').innerHTML = ''; $('#steps').innerHTML = '';
   $('#progress').className = 'progress';
   try {
-    const r = await fetch('/api/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brand }) });
+    const r = await fetch('api/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brand }) });
     const { jobId, error } = await r.json(); if (!jobId) throw new Error(error || 'failed to start');
     for (;;) {
       await new Promise((res) => setTimeout(res, 1000));
-      const j = await (await fetch('/api/research/' + jobId)).json();
+      const j = await (await fetch('api/research/' + jobId)).json();
       $('#steps').innerHTML = j.progress.map((p) => `<li>${esc(p.s)}</li>`).join('');
       if (j.status === 'done') { $('#progress').classList.add('done'); showReport(j.report, j.mock); loadRecent(); break; }
       if (j.status === 'error') throw new Error(j.error);

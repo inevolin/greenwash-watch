@@ -160,6 +160,9 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.css': 'text/css', '.js': '
 const send = (res, code, obj) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(obj)); };
 
 const server = http.createServer(async (req, res) => {
+  const BASE = (process.env.BASE_PATH || '').replace(/\/$/, '');
+  if (BASE && req.url === BASE) { res.writeHead(301, { location: BASE + '/' }); return res.end(); }
+  if (BASE && req.url.startsWith(BASE + '/')) req.url = req.url.slice(BASE.length);
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/api/health') return send(res, 200, { ok: true, mode: MOCK ? 'mock' : 'live', limits: { perIpPerHour: PER_IP_PER_HOUR, globalPerDay: GLOBAL_PER_DAY, usedToday: dayCount } });
   if (url.pathname === '/api/recent') return send(res, 200, recent());
@@ -173,7 +176,7 @@ const server = http.createServer(async (req, res) => {
       let brand = '';
       try { brand = String(JSON.parse(body || '{}').brand || '').trim().slice(0, 80); } catch {}
       if (!brand) return send(res, 400, { error: 'brand is required' });
-      const ip = (process.env.TRUST_PROXY === '1' && String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()) || req.socket.remoteAddress;
+      const ip = (process.env.TRUST_PROXY === '1' && String(req.headers['x-real-ip'] || String(req.headers['x-forwarded-for'] || '').split(',').pop()).trim()) || req.socket.remoteAddress;
       const job = startJob(brand, ip);
       if (job.limited) return send(res, 429, { error: job.limited });
       send(res, 202, { jobId: job.id, mode: MOCK ? 'mock' : 'live', cached: !!job.cached });

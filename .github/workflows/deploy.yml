@@ -1,0 +1,62 @@
+name: Deploy nevolin.be/greenwashing-watchdog
+
+# SSH to the server, hard-reset /var/www/greenwash-watch to the pushed commit and
+# restart ONLY the pm2 app `greenwash-watch` (never `pm2 reload all`). Skips (green)
+# when the secrets are missing. Secrets: SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, SERVER_IP, SERVER_USER.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-greenwash
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://nevolin.be/greenwashing-watchdog/
+    steps:
+      - name: Check deploy secrets
+        id: gate
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          if [ -z "$SSH_PRIVATE_KEY" ] || [ -z "$SERVER_IP" ] || [ -z "$SERVER_USER" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy skipped::Deploy secrets not set. See deploy/README.md."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Release on server
+        if: steps.gate.outputs.ready == 'true'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+        run: |
+          set -e
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          if [ -n "$SSH_KNOWN_HOSTS" ]; then echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts; else ssh-keyscan -H "$SERVER_IP" > ~/.ssh/known_hosts; fi
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes "$SERVER_USER@$SERVER_IP" "bash /var/www/greenwash-watch/deploy/deploy.sh main"
+
+      - name: Public health check
+        if: steps.gate.outputs.ready == 'true'
+        run: |
+          for i in $(seq 1 10); do
+            curl -fsS https://nevolin.be/greenwashing-watchdog/api/health && exit 0
+            sleep 3
+          done
+          exit 1
