@@ -2,6 +2,10 @@ const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const safeUrl = (u) => (/^https?:\/\//i.test(u || '') ? u : '#');
 const vClass = (v) => (/hold/i.test(v) ? 'ok' : /unsub|commit/i.test(v) ? 'uns' : 'mis');
+const unq = (s) => String(s ?? '').trim().replace(/^["'“”‘’«»]+|["'“”‘’«»]+$/g, '').trim();
+const fmtDate = (d) => { const m = String(d || '').match(/^(\d{4})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, 1).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : String(d || ''); };
+const vSplit = (v) => { const m = String(v || '').match(/^([^(]+?)\s*\((.+)\)\s*$/); return m ? [m[1], m[2]] : [String(v || ''), '']; };
+const prettyStep = (s) => { s = String(s || '').replace(/https?:\/\/(?:www\.)?([^\/\s]+)\S*/gi, '$1').replace(/\bwww\.([^\s\/]+)/gi, '$1'); return s === s.toUpperCase() && /[A-Z]/.test(s) ? s.toLowerCase().replace(/^\w/, (c) => c.toUpperCase()).replace(/\b(prosecutor|judge|defender)\b/gi, (w) => w[0].toUpperCase() + w.slice(1)) : s; };
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* scroll reveal + counters */
@@ -38,8 +42,8 @@ function render(ind) {
   $('#grid').innerHTML = cases.filter((c) => ind === 'All' || c.industry === ind).map((c, i) => `
     <button class="card" data-id="${esc(c.id)}" style="--i:${i}" aria-label="${esc(c.brand)}: ${esc(c.verdict)}">
       <div class="inner">
-        <div class="face front"><span class="ind">${esc(c.industry)}</span><h3>${esc(c.brand)}</h3><q>${esc(c.claim)}</q><span class="hint">Tap to reveal the verdict</span></div>
-        <div class="face back ${vClass(c.verdict)}"><span class="verdict">${esc(c.verdict)}</span><small>${esc(c.regulator)} · ${esc(c.date)}</small><span class="more">Details →</span></div>
+        <div class="face front"><span class="ind">${esc(c.industry)}</span><h3>${esc(c.brand)}</h3><q>${esc(unq(c.claim))}</q><span class="hint">Tap to reveal the verdict</span></div>
+        <div class="face back ${vClass(c.verdict)}"><span class="verdict">${esc(vSplit(c.verdict)[0])}</span>${vSplit(c.verdict)[1] ? `<span class="vdetail">${esc(vSplit(c.verdict)[1])}</span>` : ''}<small>${esc(c.regulator)} · ${esc(fmtDate(c.date))}</small><span class="more">Details →</span></div>
       </div>
     </button>`).join('');
 }
@@ -49,12 +53,30 @@ $('#grid').addEventListener('click', (e) => {
   if (matchMedia('(hover: none)').matches && !card.classList.contains('flip')) { card.classList.add('flip'); return; }
   const c = cases.find((x) => x.id === card.dataset.id);
   $('#modalBody').innerHTML = `<span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><h2 style="font-size:2rem;margin-top:.4em">${esc(c.brand)}</h2>
-    <dl><dt>Claim</dt><dd><q>${esc(c.claim)}</q></dd><dt>Why</dt><dd>${esc(c.reason)}</dd>
-    <dt>Body</dt><dd>${esc(c.regulator)} · ${esc(c.date)}</dd>
+    <dl><dt>Claim</dt><dd><q>${esc(unq(c.claim))}</q></dd><dt>Why</dt><dd>${esc(c.reason)}</dd>
+    <dt>Body</dt><dd>${esc(c.regulator)} · ${esc(fmtDate(c.date))}</dd>
     <dt>Source</dt><dd><a href="${esc(safeUrl(c.source))}" target="_blank" rel="noopener">${esc(new URL(c.source).hostname)} ↗</a></dd></dl>`;
-  $('#modal').showModal();
+  openModal();
 });
-$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal' || e.target.classList.contains('x')) $('#modal').close(); });
+let lockY = 0;
+function openModal() {
+  lockY = window.scrollY;
+  window.__lenis && window.__lenis.stop();
+  document.documentElement.classList.add('modal-lock');
+  Object.assign(document.body.style, { position: 'fixed', top: `-${lockY}px`, left: '0', right: '0', width: '100%', overflow: 'hidden' });
+  $('#modal').showModal();
+}
+$('#modal').addEventListener('close', () => {
+  document.documentElement.classList.remove('modal-lock');
+  Object.assign(document.body.style, { position: '', top: '', left: '', right: '', width: '', overflow: '' });
+  window.scrollTo(0, lockY);
+  window.__lenis && window.__lenis.start();
+});
+$('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal' || e.target.closest('.x')) $('#modal').close(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').open) $('#modal').close(); });
+/* sticky pill: hide on scroll-down */
+let lastY = window.scrollY;
+addEventListener('scroll', () => { const y = window.scrollY; if (Math.abs(y - lastY) > 4) { document.body.classList.toggle('scroll-down', y > lastY && y > 80); lastY = y; } }, { passive: true });
 
 /* mode + limits */
 async function health() {
@@ -85,31 +107,31 @@ $('#form').addEventListener('submit', async (e) => {
   const brand = $('#brand').value.trim(); if (!brand) return;
   const btn = e.target.querySelector('button'); btn.disabled = true;
   $('#report').innerHTML = ''; $('#steps').innerHTML = ''; $('#stepNow').textContent = 'Starting the agent…';
-  $('#progress').className = 'progress';
+  $('#progress').className = 'progress'; document.body.classList.add('searching');
   try {
     const r = await fetch('api/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brand }) });
     const { jobId, error } = await r.json(); if (!jobId) throw new Error(error || 'Failed to start');
     for (;;) {
       await new Promise((res) => setTimeout(res, 1000));
       const j = await (await fetch('api/research/' + jobId)).json();
-      $('#steps').innerHTML = j.progress.map((p) => `<li>${esc(p.s)}</li>`).join('');
-      if (j.progress.length) $('#stepNow').textContent = j.progress[j.progress.length - 1].s;
+      $('#steps').innerHTML = j.progress.map((p) => `<li>${esc(prettyStep(p.s))}</li>`).join('');
+      if (j.progress.length) $('#stepNow').textContent = prettyStep(j.progress[j.progress.length - 1].s);
       if (j.status === 'done') { $('#progress').classList.add('done', 'hidden'); showReport(j.report, j.mock, j.cached ? 'Cached result' : ''); loadRecent(); health(); break; }
       if (j.status === 'error') throw new Error(j.error);
     }
   } catch (err) {
     $('#progress').classList.add('hidden');
     $('#report').innerHTML = `<div class="err">${esc(err.message)}</div>`;
-  } finally { btn.disabled = false; }
+  } finally { btn.disabled = false; document.body.classList.remove('searching'); }
 });
 
 function showReport(r, mock, note) {
   window.dispatchEvent(new CustomEvent("gw:report", { detail: r }));
   const banner = mock || r.example_data ? `<div class="banner">Demo data. This is not a live run.</div>` : note ? `<div class="banner saved">${esc(note)}</div>` : '';
   const items = (r.claims || []).map((c, i) => `<article class="claim ${vClass(c.verdict)}" style="--i:${i}">
-    <span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><q>${esc(c.claim)}</q>
+    <span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><q>${esc(unq(c.claim))}</q>
     <p>${esc(c.reason)}</p>
-    <ul><li><a href="${esc(safeUrl(c.source_url))}" target="_blank" rel="noopener">Brand source</a> ${esc(c.date || '')}</li>${(c.evidence || []).map((e) => `<li><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a></li>`).join('')}</ul>
+    <ul><li><a href="${esc(safeUrl(c.source_url))}" target="_blank" rel="noopener">Brand source</a> ${esc(fmtDate(c.date))}</li>${(c.evidence || []).map((e) => `<li><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a></li>`).join('')}</ul>
   </article>`).join('');
   $('#report').innerHTML = `${banner}<h3 style="font-size:1.8rem;margin:.4em 0 .2em">${esc(r.brand)}</h3><p class="sub">${esc(r.summary)}</p><div class="claims">${items}</div>${r.raw ? `<pre>${esc(r.raw)}</pre>` : ''}`;
 }

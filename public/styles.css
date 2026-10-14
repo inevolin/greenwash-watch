@@ -396,3 +396,22 @@ main .cma-lane li{border-left-color:var(--rule)!important}
 .chip{gap:.4em}
 @media (max-width:768px){.hero-pin{min-height:auto;padding-bottom:40px}.hero-lead{margin-top:16px}.leaf-canvas{opacity:.55}}
 @media (max-width:768px){.hero-badge{order:10}}
+
+/* mobile fixes v5 */
+html.modal-lock,html.modal-lock body{overflow:hidden;overscroll-behavior:none}
+dialog{overscroll-behavior:contain}
+.back .vdetail{font:500 12px/1.3 var(--sans);color:#d9d4c8}
+@media (max-width:768px){
+  dialog[open]{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .back{gap:8px}
+  .back .verdict{height:auto;max-width:100%;white-space:normal;overflow-wrap:anywhere;font-size:1rem;line-height:1.2}
+  .card.flip .back{clip-path:inset(30% 0 0 0)}
+  body.scroll-down .cpill.show,body.searching .cpill.show{transform:translate(-50%,140%);opacity:0;pointer-events:none}
+  .research,.research>*{max-width:100%;min-width:0;box-sizing:border-box}
+  .research{overflow-x:clip;transform:none!important;translate:none!important}
+  .search label{display:block;padding-left:0;margin-left:0}
+  .step-now{text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  main .cma-steer{display:flex;flex-wrap:nowrap;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;width:calc(100% + 2*var(--pad));margin-right:calc(-1*var(--pad));margin-left:calc(-1*var(--pad));padding:4px var(--pad);scroll-padding-inline:var(--pad);gap:8px}
+  .scan{height:110px}.scan-doc{width:90px;height:96px;margin-left:-45px;top:7px;padding:10px;gap:7px}.scan-doc i{height:6px}
+}
+main .cma-steer>*{flex:0 0 auto}
