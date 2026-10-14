@@ -211,3 +211,7 @@ dd .src{margin:4px 0}
 .snapbox a{display:inline-block;margin-top:12px;color:#fff;font:600 14px/1 ui-monospace,monospace;padding:12px 0}
 .snapbox .x{position:absolute;top:8px;right:8px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.92);font-size:24px;cursor:pointer}
 @media (max-width:480px){.src{gap:10px;padding:9px 10px;font-size:12px}.src-thumb{width:80px;height:52px}}
+.claim>.src,.claim>ul{grid-column:2}
+@media (max-width:760px){.claim>.src,.claim>ul{grid-column:auto}}
+dialog.snapbox,dialog.snapbox[open]{margin:auto!important;width:min(94vw,980px)!important;max-width:94vw!important;max-height:none;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0 0 4px!important;overflow:visible!important;text-align:center}
+.snapbox a{padding:12px 6px}
