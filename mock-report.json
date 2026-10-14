@@ -1,0 +1,18 @@
+{
+  "brand": "Persil (Unilever)",
+  "example_data": true,
+  "summary": "EXAMPLE DATA. Illustrative output built from the public 2022 ASA ruling, not a live research run. Our assessment: one historical claim was found misleading by the UK regulator; no other claims were assessed in this example.",
+  "claims": [
+    {
+      "claim": "kinder to our planet",
+      "source_url": "https://www.asa.org.uk/rulings/unilever-uk-ltd-a22-1150985-unilever-uk-ltd.html",
+      "date": "2022-08-31",
+      "verdict": "misleading",
+      "reason": "Our assessment, consistent with the ASA ruling: the basis of the comparison was not stated, and no full-lifecycle evidence was shown.",
+      "rule": "CMA Green Claims Code: claims must be clear and unambiguous and consider the full life cycle; EU 2024/825: generic environmental claims",
+      "evidence": [
+        {"title": "ASA Ruling on Unilever UK Ltd (upheld, 31 Aug 2022)", "url": "https://www.asa.org.uk/rulings/unilever-uk-ltd-a22-1150985-unilever-uk-ltd.html"}
+      ]
+    }
+  ]
+}

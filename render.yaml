@@ -1,0 +1,22 @@
+# One-click deploy on Render: New > Blueprint > pick this repo. Set ANTHROPIC_API_KEY in the dashboard (never commit it).
+services:
+  - type: web
+    name: greenwash-watch
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: AGENT_ID
+        value: agent_01AJ55xegdyCJDREwcNxWAQ7
+      - key: ENVIRONMENT_ID
+        value: env_01UwzhHUeUcGJMJpuHeo7uDT
+      - key: TRUST_PROXY
+        value: "1"
+      - key: RATE_PER_IP_PER_HOUR
+        value: "2"
+      - key: RATE_GLOBAL_PER_DAY
+        value: "20"
+      - key: BUDGET_CENTS
+        value: "300"
