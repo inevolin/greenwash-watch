@@ -62,14 +62,16 @@
   const reds = gsap.utils.toArray('.claim-title .redact');
   gsap.set(reds, { '--r': 0 });
   const MOB = matchMedia('(max-width: 768px)').matches;
-  if (MOB) {
-    /* mobile: no pin. Time-based decay that leaves the claim readable (strike-through), then the stamp. */
+  if (true) {
+    /* all widths: no pin. A real claim is struck through and stamped within ~3s, leaving it readable. */
     const pr = { v: 0 };
-    gsap.timeline({ delay: 1.6 })
-      .to(pr, { v: 1.25, duration: 3.2, ease: 'power1.inOut', onUpdate: () => { prog = pr.v; } }, 0)
-      .to(reds, { '--r': 1, duration: 0.45, stagger: 0.18, ease: 'power2.inOut' }, 0.3)
-      .fromTo('.hero-stamp', { opacity: 0, scale: 2.2, rotate: -18 }, { opacity: 1, scale: 1, rotate: -6, duration: 0.5, ease: 'back.out(3)' }, 1.7)
-      .to('.rec', { color: '#D97757', duration: 0.3 }, 1.7);
+    gsap.timeline({ delay: 0.9 })
+      .to(pr, { v: 1.25, duration: 2.6, ease: 'power1.inOut', onUpdate: () => { prog = pr.v; } }, 0)
+      .to(reds, { '--r': 1, duration: 0.32, stagger: 0.12, ease: 'power2.inOut' }, 0.2)
+      .fromTo('.hero-stamp', { opacity: 0, scale: 2.2, rotate: -18 }, { opacity: 1, scale: 1, rotate: -6, duration: 0.45, ease: 'back.out(3)' }, 1.05)
+      .to('.hero-pin', { x: () => (Math.random() - 0.5) * 4, duration: 0.03, repeat: 3, yoyo: true, clearProps: 'x' }, 1.12)
+      .fromTo('.hero-exhibit', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.35)
+      .to('.rec', { color: '#D97757', duration: 0.3 }, 1.05);
   } else {
   const tl = gsap.timeline({ scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.8,
     onUpdate: (s) => { prog = s.progress * 1.4; } } });

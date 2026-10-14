@@ -603,3 +603,15 @@ main .cma-steer>*{flex:0 0 auto}
   .back small{font:500 12px/1.35 var(--sans)}
   .back .more{font:600 12px var(--sans);letter-spacing:.08em}
 }
+
+/* hero v7: real claim, time-based stamp on all widths (no scroll pin) */
+.hero{height:auto}
+.hero-pin{position:relative;height:auto;min-height:100vh;min-height:100svh}
+.redact::after{top:52%;bottom:auto;height:.075em;left:-.03em;right:-.03em;background:var(--red);border-radius:2px}
+.hero-exhibit{position:relative;z-index:3;justify-self:start;margin:18px 0 0;font:400 clamp(.9rem,1.1vw,1.05rem)/1.45 var(--sans);color:var(--ink2);padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.8);border:1px solid #e6e0d5;opacity:0}
+.hero-exhibit b{font-weight:600;color:var(--ink)}
+.claim-title{max-width:14ch}
+@media (min-width:769px){.hero-pin{align-content:center;justify-items:start}.hero-stamp{top:58%;left:62%}}
+@media (max-width:768px){.hero-exhibit{font-size:.85rem;border-radius:12px;margin-top:10px}}
+@media (prefers-reduced-motion:reduce){.hero-exhibit{opacity:1}}
+@media (max-width:768px){.hero-pin{min-height:auto}}
