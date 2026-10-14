@@ -1,6 +1,6 @@
 name: Deploy nevolin.be/greenwashing-watchdog
 
-# SSH to the server, hard-reset /var/www/greenwash-watch to the pushed commit and
+# SSH to the server, hard-reset /root/apps/greenwash-watch to the pushed commit and
 # restart ONLY the pm2 app `greenwash-watch` (never `pm2 reload all`). Skips (green)
 # when the secrets are missing. Secrets: SSH_PRIVATE_KEY, SSH_KNOWN_HOSTS, SERVER_IP, SERVER_USER.
 
@@ -49,8 +49,9 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
+          ssh-keygen -lf ~/.ssh/id_deploy   # fingerprint only (safe to log)
           if [ -n "$SSH_KNOWN_HOSTS" ]; then echo "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts; else ssh-keyscan -H "$SERVER_IP" > ~/.ssh/known_hosts; fi
-          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes "$SERVER_USER@$SERVER_IP" "bash /var/www/greenwash-watch/deploy/deploy.sh main"
+          ssh -i ~/.ssh/id_deploy -o IdentitiesOnly=yes "$SERVER_USER@$SERVER_IP" "bash /root/apps/greenwash-watch/deploy/deploy.sh main"
 
       - name: Public health check
         if: steps.gate.outputs.ready == 'true'

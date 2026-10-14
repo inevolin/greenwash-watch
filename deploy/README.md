@@ -1,8 +1,8 @@
 # Deploy: nevolin.be/greenwashing-watchdog
 
 - Server: DigitalOcean droplet; nginx vhost `nevolin.be` proxies `/greenwashing-watchdog/` to `127.0.0.1:3300` (see `nginx-location.conf`).
-- App: `/var/www/greenwash-watch` (git checkout), saved reports in `/var/www/greenwash-watch-data`, pm2 app **`greenwash-watch`** (memory capped via `ecosystem.config.js`). Never `pm2 reload all`.
-- Secrets on the server: `/var/www/greenwash-watch/.env` (chmod 600) with `ANTHROPIC_API_KEY`, `AGENT_ID`, `ENVIRONMENT_ID`. Never committed.
+- App: `/root/apps/greenwash-watch` (git checkout), saved reports in `/root/apps/greenwash-watch-data`, pm2 app **`greenwash-watch`** (memory capped via `ecosystem.config.js`). Never `pm2 reload all`.
+- Secrets on the server: `/root/apps/greenwash-watch/.env` (chmod 600) with `ANTHROPIC_API_KEY`, `AGENT_ID`, `ENVIRONMENT_ID`. Never committed.
 
 ## GitHub Actions secrets (repo → Settings → Secrets → Actions)
 | Secret | Value |

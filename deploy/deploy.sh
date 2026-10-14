@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Runs ON the server. Updates /var/www/greenwash-watch and restarts ONLY the pm2 app greenwash-watch.
+# Runs ON the server. Updates /root/apps/greenwash-watch and restarts ONLY the pm2 app greenwash-watch.
 set -euo pipefail
-APP_DIR=/var/www/greenwash-watch
-DATA_DIR=/var/www/greenwash-watch-data
+APP_DIR=/root/apps/greenwash-watch
+DATA_DIR=/root/apps/greenwash-watch-data
 REF="${1:-main}"
 cd "$APP_DIR"
 git fetch --quiet origin
@@ -11,7 +11,7 @@ mkdir -p "$DATA_DIR"
 cp -n data/*.json "$DATA_DIR"/ 2>/dev/null || true   # seed, never overwrite saved reports
 test -f .env || { echo "Missing $APP_DIR/.env (ANTHROPIC_API_KEY, AGENT_ID, ENVIRONMENT_ID)"; exit 1; }
 if pm2 describe greenwash-watch >/dev/null 2>&1; then
-  pm2 restart ecosystem.config.js --only greenwash-watch --update-env
+  pm2 reload ecosystem.config.js --only greenwash-watch --update-env
 else
   pm2 start ecosystem.config.js --only greenwash-watch
 fi
