@@ -46,7 +46,7 @@
       const k = Math.max(0, Math.min(1, (prog - p.d) / 0.55)), e = k * k;
       const x = p.x + Math.sin(t * 0.8 + p.r * 6) * (0.6 + e * 40) + p.vx * e * 160;
       const y = p.y + p.vy * e * H * 0.45 + Math.cos(t * 0.6 + p.r * 9) * e * 20;
-      const g = Math.round(47 + (110 - 47) * e), gr = Math.round(138 + (106 - 138) * e), b = Math.round(87 + (100 - 87) * e);
+      const g = Math.round(47 + (160 - 47) * e), gr = Math.round(125 + (156 - 125) * e), b = Math.round(85 + (150 - 85) * e);
       ctx.globalAlpha = (1 - e * 0.85) * (k > 0.99 ? 0.15 : 1);
       ctx.fillStyle = `rgb(${g},${gr},${b})`;
       const s = p.s * (1 + e * 5);
@@ -63,12 +63,12 @@
   gsap.set(reds, { '--r': 0 });
   const tl = gsap.timeline({ scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.8,
     onUpdate: (s) => { prog = s.progress * 1.4; } } });
-  tl.to('.claim-title', { color: '#111110', duration: 0.3 }, 0.1)
+  tl.to('.claim-title', { color: '#1f1e1d', duration: 0.3 }, 0.1)
     .to(reds, { '--r': 1, duration: 0.12, stagger: 0.07, ease: 'power2.inOut' }, 0.25)
     .to('.hero-lead, .scroll-cue', { opacity: 0, y: -20, duration: 0.15 }, 0.2)
     .fromTo('.hero-stamp', { opacity: 0, scale: 2.4, rotate: -20 }, { opacity: 1, scale: 1, rotate: -8, duration: 0.12, ease: 'back.out(3)' }, 0.78)
     .to('.hero-pin', { x: () => (Math.random() - 0.5) * 6, duration: 0.02, repeat: 3, yoyo: true }, 0.86)
-    .to('.rec', { color: '#e3271b', duration: 0.1 }, 0.8);
+    .to('.rec', { color: '#D97757', duration: 0.1 }, 0.8);
   gsap.from('.claim-title .w', { yPercent: 110, opacity: 0, rotate: 3, duration: 1.3, stagger: 0.07, ease: 'expo.out', delay: 0.15 });
   gsap.from('.hero-meta, .hero-cta, .hero-lead', { opacity: 0, y: 16, duration: 1, stagger: 0.1, delay: 0.7, ease: 'power3.out' });
 
