@@ -65,7 +65,10 @@ async function health() {
   if (h.limits && h.mode === 'live') $('#limits').textContent = `${h.limits.perIpPerHour} searches/hour · ${Math.max(0, h.limits.globalPerDay - h.limits.usedToday)} left today`;
 }
 async function loadRecent() {
-  const list = await (await fetch('api/recent')).json();
+  const all = await (await fetch('api/recent')).json();
+  // merge duplicates by display name, e.g. "Shell (Shell plc)" and "Shell" (list is newest first; keep the first)
+  const seen = new Set(), list = [];
+  for (const r of all) { const k = String(r.brand || '').replace(/\s*\(.*?\)\s*/g, ' ').trim().toLowerCase(); if (seen.has(k)) continue; seen.add(k); list.push({ ...r, brand: String(r.brand || '').replace(/\s*\(.*?\)\s*/g, ' ').trim() }); }
   $('#recent').innerHTML = list.length ? list.map((r) => `<button class="chip" data-slug="${esc(r.slug)}">${esc(r.brand)} <small>${r.claims} claims</small></button>`).join('') : '<span class="sub">Nothing yet.</span>';
 }
 $('#recent').addEventListener('click', async (e) => {
