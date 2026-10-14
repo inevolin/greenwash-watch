@@ -575,3 +575,31 @@ main .cma-steer>*{flex:0 0 auto}
   .cma-ba s,.cma-ba p,.cma-ba li{overflow-wrap:anywhere}
   main .cma-debate .cma-claim{padding:16px 0;border-bottom:1px solid var(--rule)}
 }
+
+/* cards contrast v7 (all widths) */
+.card .inner{background:#fff;border:1px solid #e3ddd2;box-shadow:0 1px 2px rgba(31,30,29,.05),0 14px 34px -20px rgba(31,30,29,.28)}
+.face.front{background:#fff}
+.face.back{background:#EFE9DF!important;color:var(--ink)!important;border-top:1px solid #ddd4c5}
+.back.mis{background:linear-gradient(#f3e7df,#EFE9DF)!important}
+.back.uns{background:linear-gradient(#f2eadb,#EFE9DF)!important}
+.back.ok{background:linear-gradient(#e6eee7,#EFE9DF)!important}
+.back .verdict{background:#fff}
+.back small{color:#6f6a60!important}.back .vdetail{color:var(--ink2)!important}.back .more{color:var(--red)}
+@media (max-width:768px){.face.back,.card.flip .back,.card:hover .back{border-top:1px solid #ddd4c5}}
+/* desktop: same stacked card, verdict row always visible */
+@media (min-width:769px){
+  .grid{align-items:stretch}
+  .card{height:auto;perspective:none}
+  .card .inner{position:relative;inset:auto;display:flex;flex-direction:column;height:100%;border-radius:18px;overflow:hidden}
+  .card:hover .inner,.card:focus-visible .inner{transform:translateY(-4px)}
+  .face{position:relative;inset:auto;overflow:visible}
+  .face.front{flex:1;padding:22px 22px 16px;gap:10px}
+  .front h3{font-size:2rem;margin:0}
+  .front q{-webkit-line-clamp:4}
+  .card:hover .front q,.card.flip .front q,.card:focus-visible .front q{background-size:0 100%;color:var(--ink2)}
+  .face.back,.card:hover .back,.card:focus-visible .back,.card.flip .back{clip-path:none;justify-content:flex-start;padding:16px 22px 18px;gap:8px}
+  .back .verdict{rotate:0deg;font:700 .75rem/1.2 var(--sans);letter-spacing:.06em;padding:7px 10px;border-width:1.5px;border-radius:8px}
+  .back.ok .verdict{color:var(--ok)}.back.uns .verdict{color:var(--amber)}
+  .back small{font:500 12px/1.35 var(--sans)}
+  .back .more{font:600 12px var(--sans);letter-spacing:.08em}
+}
