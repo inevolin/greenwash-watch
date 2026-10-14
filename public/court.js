@@ -49,7 +49,7 @@
     return `<div class="ct-rewrite"><span class="ct-av ct-av-C" aria-hidden="true">C</span><div class="ct-rw-body"><span class="ct-name">Consultant · compliant rewrite</span>
       <div class="ba" data-ba><div class="ba-pane ba-after"><span>After</span><p>${esc(c.rewrite)}</p></div>
       <div class="ba-pane ba-before"><span>Before</span><p><s>${esc(unq(c.claim))}</s></p></div>
-      <div class="ba-hint">Drag to compare</div><div class="ba-handle" role="slider" tabindex="0" aria-label="Compare original and rewrite" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i></i></div></div>
+      <div class="ba-hint">Drag or tap to compare</div><div class="ba-handle" role="slider" tabindex="0" aria-label="Compare original and rewrite" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i></i></div></div>
       ${ev.length ? `<details class="ct-ev"><summary>Evidence needed (${ev.length})</summary><ul>${ev.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''}</div></div>`;
   }
   async function play(r) {
@@ -84,13 +84,14 @@
       const h = ba.querySelector('.ba-handle');
       const set = (pct) => { pct = Math.max(0, Math.min(100, pct)); ba.style.setProperty('--x', pct + '%'); h.setAttribute('aria-valuenow', Math.round(pct)); };
       const fromEv = (e) => { const r = ba.getBoundingClientRect(); return ((e.clientX - r.left) / r.width) * 100; };
-      let drag = false;
-      ba.addEventListener('pointerdown', (e) => { drag = true; ba.setPointerCapture(e.pointerId); set(fromEv(e)); ba.classList.add('drag'); });
-      ba.addEventListener('pointermove', (e) => drag && set(fromEv(e)));
-      const end = () => { drag = false; ba.classList.remove('drag'); };
+      let drag = false, moved = 0, x0 = 0;
+      ba.addEventListener('pointerdown', (e) => { drag = true; moved = 0; x0 = e.clientX; ba.setPointerCapture(e.pointerId); set(fromEv(e)); ba.classList.add('drag'); });
+      ba.addEventListener('pointermove', (e) => { if (drag) { moved = Math.max(moved, Math.abs(e.clientX - x0)); set(fromEv(e)); } });
+      const end = () => { drag = false; ba.classList.remove('drag'); ba.classList.add('used'); };
       ba.addEventListener('pointerup', end); ba.addEventListener('pointercancel', end);
       h.addEventListener('keydown', (e) => { const v = +h.getAttribute('aria-valuenow'); if (e.key === 'ArrowLeft') set(v - 10); if (e.key === 'ArrowRight') set(v + 10); });
       // open on the original, then wipe across to the rewrite (ends fully on "After")
+      ba.addEventListener('click', (e) => { if (moved > 6) return; const v = +h.getAttribute('aria-valuenow'); ba.classList.add('snap'); set(v > 50 ? 0 : 100); setTimeout(() => ba.classList.remove('snap'), 450); });
       set(100);
       if (RM) set(0); else {
         let t0; const ease = (x) => 1 - Math.pow(1 - x, 3);

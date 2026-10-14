@@ -121,3 +121,6 @@ body.has-court main .cma-lanes{display:none}
 .lb-row.loading,.lb-worst.loading{opacity:.6}
 .lb-row{align-items:center}
 @media (max-width:768px){.lb-worst{padding:14px;gap:12px}.lbw-badge{width:44px;height:44px;font-size:16px}.lbw-main b{font-size:1.3rem}.lbw-go{display:none}.lb-mono{width:34px;height:34px;font-size:13px;border-radius:10px}.lb-rank{min-width:1.2rem;font-size:1.1rem}}
+
+.ba.snap .ba-before{transition:clip-path .45s var(--ease)}.ba.snap .ba-handle{transition:left .45s var(--ease)}
+.ba.used .ba-hint{opacity:0}
