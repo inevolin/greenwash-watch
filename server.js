@@ -41,7 +41,7 @@ For each claim: quote the brand's own words exactly, give the source URL and dat
 Verdict scale: "holds up" | "unsubstantiated" | "misleading". Use "unsubstantiated" when evidence is insufficient.
 Use defamation-safe wording ("our assessment"); never allege intent unless quoting a ruling. Reference the UK CMA Green Claims Code and EU Directive 2024/825 where relevant. The EU Green Claims Directive is only a pending proposal; do not cite it as law.
 End your final message with ONLY a fenced \`\`\`json block of this shape:
-{"brand":"","summary":"","claims":[{"claim":"","source_url":"","date":"","verdict":"holds up|unsubstantiated|misleading","reason":"","rule":"","evidence":[{"title":"","url":""}]}]}${process.env.JUDGE_ID ? `\nYou are the Judge: delegate to Prosecutor, then Defender, as your system prompt says. Add "prosecution" and "defense" (one sentence each) to every claim, and a top-level "changes_since_last" from your brand memory file. Keep total cost low.` : ''}`;
+{"brand":"","summary":"","claims":[{"claim":"","source_url":"","date":"","verdict":"holds up|unsubstantiated|misleading","reason":"","rule":"","evidence":[{"title":"","url":""}]}]}${process.env.JUDGE_ID ? `\nYou are the Judge: delegate to Prosecutor, then Defender, then Compliance Consultant for every unsubstantiated/misleading claim, as your system prompt says. For those claims add "rewrite" (compliant wording under the UK CMA Green Claims Code and EU 2024/825) and "evidence_needed" (array of strings). Add "prosecution" and "defense" (one sentence each) to every claim, and a top-level "changes_since_last" from your brand memory file. Keep total cost low.` : ''}`;
 
 const jobs = new Map();
 
@@ -69,6 +69,26 @@ function recent() {
     try { const r = JSON.parse(fs.readFileSync(path.join(DATA_DIR, f), 'utf8')); return { brand: r.brand, slug: f.slice(0, -5), saved_at: r.saved_at, claims: (r.report.claims || []).length, source: r.source || 'visitor' }; } catch { return null; }
   }).filter(Boolean).sort((a, b) => b.saved_at - a.saved_at).slice(0, 30);
 }
+
+// Leaderboard: 0-100 integrity score per brand from saved reports (holds up=1, unsubstantiated=0.5, misleading=0).
+const INDUSTRY = (() => { const m = {}; try { for (const l of fs.readFileSync(path.join(__dirname, 'docs', 'brands.md'), 'utf8').split('\n')) { const c = l.split('|').map((x) => x.trim()); if (c.length > 3 && c[1] && c[1] !== 'Industry' && !/^-+$/.test(c[1])) for (const b of c[2].split(/,(?![^(]*\))/)) { const n = norm(b.replace(/\(.*\)/, '')); if (n) m[n] = c[1]; } } } catch {} return m; })();
+function industryOf(brand) { const n = norm(String(brand || '').replace(/\(.*\)/, '')); if (INDUSTRY[n]) return INDUSTRY[n]; const k = Object.keys(INDUSTRY).find((x) => n.startsWith(x + '-') || n.split('-')[0] === x.split('-')[0]); return k ? INDUSTRY[k] : 'Other'; }
+const PTS = { 'holds up': 1, unsubstantiated: 0.5, misleading: 0 };
+function leaderboard() {
+  const by = {};
+  for (const f of fs.readdirSync(DATA_DIR).filter((f) => f.endsWith('.json') && !f.startsWith('_'))) {
+    let r; try { r = JSON.parse(fs.readFileSync(path.join(DATA_DIR, f), 'utf8')); } catch { continue; }
+    const cl = (r.report?.claims || []).filter((c) => String(c.verdict || '').toLowerCase() in PTS); if (!cl.length) continue;
+    const name = String(r.report?.brand || r.brand || f).replace(/\s*\(.*\)\s*/, '').trim(), key = norm(name);
+    const tally = { 'holds up': 0, unsubstantiated: 0, misleading: 0 }; let pts = 0;
+    for (const c of cl) { const v = String(c.verdict).toLowerCase(); tally[v]++; pts += PTS[v]; }
+    const run = { date: new Date(r.saved_at).toISOString().slice(0, 10), saved_at: r.saved_at, score: Math.round((100 * pts) / cl.length), claims: cl.length, tally, slug: f.slice(0, -5), source: r.source || 'visitor' };
+    (by[key] = by[key] || { brand: name, industry: industryOf(name), history: [] }).history.push(run);
+  }
+  const rows = Object.values(by).map((b) => { b.history.sort((x, y) => x.saved_at - y.saved_at); const last = b.history[b.history.length - 1]; return { ...b, score: last.score, claims: last.claims, tally: last.tally, last_checked: last.date, slug: last.slug }; })
+    .sort((a, b) => b.score - a.score || a.brand.localeCompare(b.brand)).map((b, i) => ({ rank: i + 1, ...b }));
+  return { scoring: { 'holds up': 1, unsubstantiated: 0.5, misleading: 0, scale: '0-100, latest run per brand' }, industries: [...new Set(rows.map((r) => r.industry))].sort(), brands: rows };
+}
 function checkLimits(ip) {
   const now = Date.now(), today = new Date().toISOString().slice(0, 10);
   if (today !== dayKey) { dayKey = today; dayCount = 0; }
@@ -89,6 +109,7 @@ function extractReport(text, brand) {
 
 // ---------- Live CMA run: SSE streams (primary + every subagent thread), steering, outcomes, memory ----------
 const { JUDGE_ID, MEMORY_STORE_ID, DEPLOYMENT_ID, PROSECUTOR_ID, DEFENDER_ID } = process.env;
+const CONSULTANT_ID = process.env.CONSULTANT_ID || 'agent_01KhD4P8s8VY5CtxAzcMxGip';
 const RUN_AGENT = JUDGE_ID || AGENT_ID; // multi-agent Judge when configured, else single agent
 const label = (ev) => {
   const i = ev.input || {};
@@ -160,7 +181,7 @@ async function watch(job, sessionId) {
       clearTimeout(timer); ac.abort();
       job.stats = { cost_usd: Number(s.usage?.list_cost?.amount || 0) / 100, input_tokens: (s.usage?.input_tokens || 0) + (s.usage?.cache_read_input_tokens || 0) + (s.usage?.cache_creation?.ephemeral_5m_input_tokens || 0), output_tokens: s.usage?.output_tokens || 0, web_searches: s.usage?.server_tool_use?.web_search_requests || 0, web_fetches: s.usage?.server_tool_use?.web_fetch_requests || 0, active_seconds: s.stats?.active_seconds, duration_seconds: s.stats?.duration_seconds, threads: threads.size };
       const oe = s.outcome_evaluations || []; if (oe.length) job.outcome = { ...(job.outcome || {}), result: oe[oe.length - 1].result, iterations: Math.max(job.outcome?.iterations || 0, oe.length) };
-      if (why === 'budget_reached') throw new Error('Session budget reached ($' + (Number(process.env.BUDGET_CENTS || 300) / 100) + ' cap)');
+      if (why === 'budget_reached') throw new Error('Session budget reached ($' + (Number(process.env.BUDGET_CENTS || 400) / 100) + ' cap)');
       if (why === 'requires_action') throw new Error('Session needs a tool confirmation (requires_action)');
       let all = texts.join('\n');
       if (!/```json/.test(all)) { const page = await cma('GET', `/sessions/${sessionId}/events?beta=true&limit=1000`).catch(() => ({ data: [] })); all = (page.data || []).filter((e) => e.type === 'agent.message' && !e.session_thread_id).map(textOf).join('\n'); }
@@ -195,7 +216,7 @@ async function runLive(job) {
   const resources = MEMORY_STORE_ID ? [{ type: 'memory_store', memory_store_id: MEMORY_STORE_ID, access: 'read_write', instructions: `Brand memory. Read and update brands/${norm(job.brand)}.md.` }] : undefined;
   const session = await cma('POST', '/sessions', {
     agent: RUN_AGENT, environment_id: ENVIRONMENT_ID, title: `Greenwash Watch: ${job.brand}`,
-    budget: { type: 'limit', max_list_cost: { amount: String(process.env.BUDGET_CENTS || 300), currency: 'USD' } },
+    budget: { type: 'limit', max_list_cost: { amount: String(process.env.BUDGET_CENTS || 400), currency: 'USD' } },
     ...(resources ? { resources } : {}),
     initial_events: process.env.USE_OUTCOME === '0'
       ? [{ type: 'user.message', content: [{ type: 'text', text: PROMPT(job.brand) }] }]
@@ -256,12 +277,12 @@ async function hood() {
   if (MOCK) return { mode: 'mock' };
   if (hoodCache && Date.now() - hoodCache.at < 5 * 60e3) return { ...hoodCache.data, last_run: lastRun, last_scheduled: lastSched };
   const ag = async (id) => { if (!id) return null; try { const a = await cma('GET', `/agents/${id}`); return { id: a.id, name: a.name, version: a.version, model: a.model?.id || a.model }; } catch { return { id }; } };
-  const [judge, pros, def] = await Promise.all([ag(RUN_AGENT), ag(PROSECUTOR_ID), ag(DEFENDER_ID)]);
+  const [judge, pros, def, cons] = await Promise.all([ag(RUN_AGENT), ag(PROSECUTOR_ID), ag(DEFENDER_ID), ag(CONSULTANT_ID)]);
   let env = null, dep = null, mem = null;
   try { const e = await cma('GET', `/environments/${ENVIRONMENT_ID}`); env = { id: e.id, name: e.name, networking: e.config?.networking?.type }; } catch { env = { id: ENVIRONMENT_ID }; }
   if (DEPLOYMENT_ID) try { const d = await cma('GET', `/deployments/${DEPLOYMENT_ID}?beta=true`); dep = { id: d.id, status: d.status, cron: d.schedule?.expression, tz: d.schedule?.timezone, next: (d.schedule?.upcoming_runs_at || [])[0], last_run_at: d.schedule?.last_run_at }; } catch { dep = { id: DEPLOYMENT_ID }; }
   if (MEMORY_STORE_ID) try { const r = await fetch(`${API}/memory_stores/${MEMORY_STORE_ID}/memories?path_prefix=/`, { headers: { ...HEADERS, 'anthropic-beta': 'agent-memory-2026-07-22' } }); const j = await r.json(); mem = { id: MEMORY_STORE_ID, files: (j.data || []).map((m) => m.path).filter(Boolean).slice(0, 50) }; } catch { mem = { id: MEMORY_STORE_ID }; }
-  const data = { mode: 'live', agents: { judge, prosecutor: pros, defender: def }, environment: env, deployment: dep, memory: mem, outcome: { max_iterations: Number(process.env.MAX_ITER || 1), rubric: 'docs/outcome.md' } };
+  const data = { mode: 'live', agents: { judge, prosecutor: pros, defender: def, consultant: cons }, environment: env, deployment: dep, memory: mem, outcome: { max_iterations: Number(process.env.MAX_ITER || 1), rubric: 'docs/outcome.md' } };
   hoodCache = { at: Date.now(), data };
   return { ...data, last_run: lastRun, last_scheduled: lastSched };
 }
@@ -303,6 +324,7 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   if (url.pathname === '/api/health') return send(res, 200, { ok: true, mode: MOCK ? 'mock' : 'live', limits: { perIpPerHour: PER_IP_PER_HOUR, globalPerDay: GLOBAL_PER_DAY, usedToday: dayCount } });
   if (url.pathname === '/api/recent') return send(res, 200, recent());
+  if (url.pathname === '/api/leaderboard') return send(res, 200, leaderboard());
   const rm = url.pathname.match(/^\/api\/recent\/([a-z0-9-]+)$/);
   if (rm) { const f = path.join(DATA_DIR, rm[1] + '.json'); return fs.existsSync(f) ? send(res, 200, JSON.parse(fs.readFileSync(f, 'utf8'))) : send(res, 404, { error: 'not found' }); }
   if (url.pathname === '/api/cases') return send(res, 200, JSON.parse(fs.readFileSync(path.join(__dirname, 'public/cases.json'))));
