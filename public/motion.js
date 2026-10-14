@@ -27,8 +27,8 @@
   function build() {
     DPR = Math.min(devicePixelRatio || 1, 2);
     W = cv.clientWidth; H = cv.clientHeight; cv.width = W * DPR; cv.height = H * DPR;
-    const size = Math.min(H * 0.62, W * (W < 760 ? 0.8 : 0.48));
-    const ox = W < 760 ? W - size * 0.85 : W - size - W * 0.06, oy = H * (W < 760 ? 0.58 : 0.5) - size / 2;
+    const mob = W <= 768; const size = mob ? Math.min(W * 0.62, H * 0.34) : Math.min(H * 0.62, W * 0.48);
+    const ox = mob ? W - size - 8 : W - size - W * 0.06, oy = mob ? H * 0.5 - size * 0.1 : H * 0.5 - size / 2;
     const off = document.createElement('canvas'); off.width = off.height = 400; const o = off.getContext('2d');
     o.fill(leafPath); o.globalCompositeOperation = 'destination-out'; o.lineWidth = 6;
     o.stroke(new Path2D('M85 325C160 250 240 170 330 70'));
@@ -61,6 +61,16 @@
 
   const reds = gsap.utils.toArray('.claim-title .redact');
   gsap.set(reds, { '--r': 0 });
+  const MOB = matchMedia('(max-width: 768px)').matches;
+  if (MOB) {
+    /* mobile: no pin. Time-based decay that leaves the claim readable (strike-through), then the stamp. */
+    const pr = { v: 0 };
+    gsap.timeline({ delay: 1.6 })
+      .to(pr, { v: 1.25, duration: 3.2, ease: 'power1.inOut', onUpdate: () => { prog = pr.v; } }, 0)
+      .to(reds, { '--r': 1, duration: 0.45, stagger: 0.18, ease: 'power2.inOut' }, 0.3)
+      .fromTo('.hero-stamp', { opacity: 0, scale: 2.2, rotate: -18 }, { opacity: 1, scale: 1, rotate: -6, duration: 0.5, ease: 'back.out(3)' }, 1.7)
+      .to('.rec', { color: '#D97757', duration: 0.3 }, 1.7);
+  } else {
   const tl = gsap.timeline({ scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom bottom', scrub: 0.8,
     onUpdate: (s) => { prog = s.progress * 1.4; } } });
   tl.to('.claim-title', { color: '#1f1e1d', duration: 0.3 }, 0.1)
@@ -69,6 +79,7 @@
     .fromTo('.hero-stamp', { opacity: 0, scale: 2.4, rotate: -20 }, { opacity: 1, scale: 1, rotate: -8, duration: 0.12, ease: 'back.out(3)' }, 0.78)
     .to('.hero-pin', { x: () => (Math.random() - 0.5) * 6, duration: 0.02, repeat: 3, yoyo: true }, 0.86)
     .to('.rec', { color: '#D97757', duration: 0.1 }, 0.8);
+  }
   gsap.from('.claim-title .w', { yPercent: 110, opacity: 0, rotate: 3, duration: 1.3, stagger: 0.07, ease: 'expo.out', delay: 0.15 });
   gsap.from('.hero-meta, .hero-cta, .hero-lead', { opacity: 0, y: 16, duration: 1, stagger: 0.1, delay: 0.7, ease: 'power3.out' });
 
@@ -132,6 +143,8 @@
     grid.addEventListener('pointerout', (e) => { const c = e.target.closest('.card'); if (c && !c.contains(e.relatedTarget)) gsap.to(c.querySelector('.inner'), { rotateX: 0, rotateY: 0, duration: 0.8, ease: 'elastic.out(1,.5)' }); });
   }
   addEventListener('load', () => ScrollTrigger.refresh());
+  const pill = document.querySelector('.cpill');
+  if (pill) ScrollTrigger.create({ trigger: '.hero', start: 'bottom 60%', onEnter: () => pill.classList.add('show'), onLeaveBack: () => pill.classList.remove('show') });
 
   function drawStatic() {}
 })();
