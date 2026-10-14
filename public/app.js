@@ -71,7 +71,7 @@ $('#grid').addEventListener('click', (e) => {
   $('#modalBody').innerHTML = `<span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><h2 style="font-size:2rem;margin-top:.4em">${esc(c.brand)}</h2>
     <dl><dt>Claim</dt><dd><q>${esc(unq(c.claim))}</q></dd><dt>Why</dt><dd>${esc(c.reason)}</dd>
     <dt>Body</dt><dd>${esc(c.regulator)} · ${esc(fmtDate(c.date))}</dd>
-    <dt>Source</dt><dd><a href="${esc(safeUrl(c.source))}" target="_blank" rel="noopener">${esc(new URL(c.source).hostname)} ↗</a></dd></dl>`;
+    <dt>Source</dt><dd>${window.gwSource ? window.gwSource({ source_url: c.source }, { label: 'Regulator ruling', compact: true, captured: false }) : ''}${c.ad_url ? window.gwSource({ source_url: c.ad_url }, { label: 'Original ad', compact: true, captured: false }) : '<div class="src src-none"><span class="src-k">Original ad</span> quoted in the ruling</div>'}</dd></dl>`;
   openModal();
 });
 let lockY = 0;
@@ -121,6 +121,7 @@ $('#recent').addEventListener('click', async (e) => {
   const b = e.target.closest('.chip'); if (!b) return;
   const rec = await (await fetch('api/recent/' + b.dataset.slug)).json();
   $('#progress').className = 'progress hidden';
+  window.__gwCapturedAt = rec.saved_at; if (window.gwSourcesReady) await window.gwSourcesReady;
   showReport(rec.report, false, `Saved ${new Date(rec.saved_at).toLocaleDateString()}`);
   $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
 });
@@ -140,7 +141,7 @@ $('#form').addEventListener('submit', async (e) => {
       const j = await (await fetch('api/research/' + jobId)).json();
       $('#steps').innerHTML = j.progress.map((p) => `<li>${esc(prettyStep(p.s))}</li>`).join('');
       if (j.progress.length) $('#stepNow').textContent = prettyStep(j.progress[j.progress.length - 1].s);
-      if (j.status === 'done') { $('#progress').classList.add('done', 'hidden'); showReport(j.report, j.mock, j.cached ? 'Cached result' : ''); loadRecent(); health(); break; }
+      if (j.status === 'done') { $('#progress').classList.add('done', 'hidden'); window.__gwCapturedAt = j.saved_at || (j.cached ? null : new Date().toISOString()); showReport(j.report, j.mock, j.cached ? 'Cached result' : ''); loadRecent(); health(); break; }
       if (j.status === 'error') throw new Error(j.error);
     }
   } catch (err) {
@@ -155,7 +156,7 @@ function showReport(r, mock, note) {
   const items = (r.claims || []).map((c, i) => `<article class="claim ${vClass(c.verdict)}" style="--i:${i}">
     <span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><q>${esc(unq(c.claim))}</q>
     <p>${esc(c.reason)}</p>
-    <ul><li><a href="${esc(safeUrl(c.source_url))}" target="_blank" rel="noopener">Brand source</a> ${esc(fmtDate(c.date))}</li>${(c.evidence || []).map((e) => `<li><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a></li>`).join('')}</ul>
+    ${window.gwSource ? window.gwSource(c) : ''}<ul>${(c.evidence || []).map((e) => `<li><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a></li>`).join('')}</ul>
   </article>`).join('');
   $('#report').innerHTML = `${banner}<h3 style="font-size:1.8rem;margin:.4em 0 .2em">${esc(r.brand)}</h3><p class="sub">${esc(r.summary)}</p><div class="claims">${items}</div>${r.raw ? `<pre>${esc(r.raw)}</pre>` : ''}`;
 }

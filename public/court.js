@@ -50,6 +50,7 @@
       <div class="ba" data-ba><div class="ba-pane ba-after"><span>After</span><p>${esc(c.rewrite)}</p></div>
       <div class="ba-pane ba-before"><span>Before</span><p><s>${esc(unq(c.claim))}</s></p></div>
       <div class="ba-hint">Drag or tap to compare</div><div class="ba-handle" role="slider" tabindex="0" aria-label="Compare original and rewrite" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><i></i></div></div>
+      ${window.gwSource ? window.gwSource(c, { label: 'Original found at', compact: true }) : ''}
       ${ev.length ? `<details class="ct-ev"><summary>Evidence needed (${ev.length})</summary><ul>${ev.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''}</div></div>`;
   }
   async function play(r) {
@@ -64,7 +65,7 @@
       if (token !== run) return;
       const cl = claims[i];
       const art = document.createElement('article'); art.className = 'ct-claim';
-      art.innerHTML = `<div class="ct-exhibit"><span>Exhibit ${String.fromCharCode(65 + i)}</span><q>${esc(unq(cl.claim))}</q></div><div class="ct-thread"></div>`;
+      art.innerHTML = `<div class="ct-exhibit"><span>Exhibit ${String.fromCharCode(65 + i)}</span><q>${esc(unq(cl.claim))}</q>${window.gwSource ? window.gwSource(cl) : ''}</div><div class="ct-thread"></div>`;
       body.appendChild(art); requestAnimationFrame(() => art.classList.add('in'));
       const t = art.querySelector('.ct-thread');
       if (cl.prosecution) { await bubble(t, 'Prosecutor', cl.prosecution, token); await sleep(250); }

@@ -32,6 +32,7 @@
     try {
       const rec = await (await fetch('api/recent/' + slug)).json(); if (!rec || !rec.report) return;
       document.getElementById('progress').className = 'progress hidden';
+      window.__gwCapturedAt = rec.saved_at; if (window.gwSourcesReady) await window.gwSourcesReady;
       showReport(rec.report, false, `Saved ${new Date(rec.saved_at).toLocaleDateString()}`);
       const rep = document.getElementById('report');
       (window.__lenis ? window.__lenis.scrollTo(rep, { offset: -80 }) : rep.scrollIntoView({ behavior: 'smooth', block: 'start' }));

@@ -37,11 +37,11 @@ async function cma(method, p, body) {
 
 const PROMPT = (brand) => `Research the brand "${brand}" as the Greenwash Watch agent.
 Find its recent environmental / sustainability marketing claims (use relative dates: roughly the last 12 months), and any regulator or court rulings about them.
-For each claim: quote the brand's own words exactly, give the source URL and date, and find at least one independent source that supports or contradicts it.
+For each claim: quote the brand's own words exactly, give the exact URL of the page where you found it (source_url; never guess or reconstruct one), its page title (source_title), a verbatim excerpt of at most 30 words (quoted_excerpt) and the date, and find at least one independent source that supports or contradicts it.
 Verdict scale: "holds up" | "unsubstantiated" | "misleading". Use "unsubstantiated" when evidence is insufficient.
 Use defamation-safe wording ("our assessment"); never allege intent unless quoting a ruling. Reference the UK CMA Green Claims Code and EU Directive 2024/825 where relevant. The EU Green Claims Directive is only a pending proposal; do not cite it as law.
 End your final message with ONLY a fenced \`\`\`json block of this shape:
-{"brand":"","summary":"","claims":[{"claim":"","source_url":"","date":"","verdict":"holds up|unsubstantiated|misleading","reason":"","rule":"","evidence":[{"title":"","url":""}]}]}${process.env.JUDGE_ID ? `\nYou are the Judge: delegate to Prosecutor, then Defender, then Compliance Consultant for every unsubstantiated/misleading claim, as your system prompt says. For those claims add "rewrite" (compliant wording under the UK CMA Green Claims Code and EU 2024/825) and "evidence_needed" (array of strings). Add "prosecution" and "defense" (one sentence each) to every claim, and a top-level "changes_since_last" from your brand memory file. Keep total cost low.` : ''}`;
+{"brand":"","summary":"","claims":[{"claim":"","source_url":"","source_title":"","quoted_excerpt":"","date":"","verdict":"holds up|unsubstantiated|misleading","reason":"","rule":"","evidence":[{"title":"","url":""}]}]}${process.env.JUDGE_ID ? `\nYou are the Judge: delegate to Prosecutor, then Defender, then Compliance Consultant for every unsubstantiated/misleading claim, as your system prompt says. For those claims add "rewrite" (compliant wording under the UK CMA Green Claims Code and EU 2024/825) and "evidence_needed" (array of strings). Add "prosecution" and "defense" (one sentence each) to every claim, and a top-level "changes_since_last" from your brand memory file. Keep total cost low.` : ''}`;
 
 const jobs = new Map();
 
@@ -328,6 +328,9 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname === '/api/leaderboard') return send(res, 200, leaderboard());
   const rm = url.pathname.match(/^\/api\/recent\/([a-z0-9-]+)$/);
   if (rm) { const f = path.join(DATA_DIR, rm[1] + '.json'); return fs.existsSync(f) ? send(res, 200, JSON.parse(fs.readFileSync(f, 'utf8'))) : send(res, 404, { error: 'not found' }); }
+  if (url.pathname === '/api/snaps') { const f = path.join(DATA_DIR, 'snaps', 'index.json'); return send(res, 200, fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, 'utf8')) : {}); }
+  const sn = url.pathname.match(/^\/snaps\/([a-f0-9]{16})\.webp$/);
+  if (sn) { const f = path.join(DATA_DIR, 'snaps', sn[1] + '.webp'); return fs.readFile(f, (err, data) => { if (err) return send(res, 404, { error: 'not found' }); res.writeHead(200, { 'content-type': 'image/webp', 'cache-control': 'public, max-age=86400' }); res.end(data); }); }
   if (url.pathname === '/api/cases') return send(res, 200, JSON.parse(fs.readFileSync(path.join(__dirname, 'public/cases.json'))));
   if (url.pathname === '/api/research' && req.method === 'POST') {
     let body = '';
