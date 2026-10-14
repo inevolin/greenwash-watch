@@ -92,3 +92,12 @@ body.has-court main .cma-lanes{display:none}
 .ct-tool span{white-space:nowrap}
 @media (max-width:768px){.ct-tool em{display:none}}
 .ba-handle{left:clamp(22px,var(--x),calc(100% - 22px))}
+/* ===== Share ===== */
+.share-bar{display:flex;align-items:center;gap:16px;margin:14px 0 6px;flex-wrap:wrap}
+.share-score{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;background:#fff;border:1px solid #e3ddd2}
+.share-score b{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:#EFE9DF;font:400 1.3rem/1 var(--display);color:var(--ink)}
+.share-score small{font:600 10px/1.2 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--mute)}
+.share-btn{display:inline-flex;align-items:center;gap:8px}
+.share-btn.busy{opacity:.6;pointer-events:none}
+.gw-toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;z-index:90;padding:12px 18px;border-radius:999px;background:var(--ink);color:#fff;font:500 14px var(--sans);box-shadow:0 14px 40px -12px rgba(0,0,0,.45);transition:opacity .35s,transform .45s var(--ease);pointer-events:none}
+.gw-toast.show{opacity:1;transform:translate(-50%,0)}
