@@ -415,3 +415,149 @@ dialog{overscroll-behavior:contain}
   .scan{height:110px}.scan-doc{width:90px;height:96px;margin-left:-45px;top:7px;padding:10px;gap:7px}.scan-doc i{height:6px}
 }
 main .cma-steer>*{flex:0 0 auto}
+
+/* ===== mobile v6: compact cards + swipeable stats + polish ===== */
+@media (max-width:768px){
+  /* rhythm */
+  :root{--pad:20px}
+  .section{padding:56px var(--pad)}
+  .section + .section,.board-sec{scroll-margin-top:72px}
+  h2{font-size:clamp(2.2rem,10vw,3rem);letter-spacing:-.02em}
+  .kicker{margin-bottom:.85rem}
+  .sub{font-size:1rem;line-height:1.45;max-width:36ch}
+
+  /* STATS: compact horizontally swipeable cards (count-up kept) */
+  .stats-sec{padding-bottom:48px}
+  .stats{
+    display:flex;flex-wrap:nowrap;gap:12px;
+    overflow-x:auto;overflow-y:hidden;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    margin:20px calc(-1*var(--pad)) 0;padding:4px var(--pad) 12px;
+    border-top:0;grid-template-columns:none;
+  }
+  .stats::-webkit-scrollbar{display:none}
+  .stat,.stat+.stat{
+    flex:0 0 min(78%,300px);scroll-snap-align:start;
+    margin:0;padding:18px 18px 16px;gap:10px;
+    border:1px solid var(--rule);border-radius:18px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);
+    background:#fff;box-shadow:0 10px 28px -22px rgba(0,0,0,.28);
+    min-height:0;
+  }
+  .stat b{font-size:clamp(2.6rem,14vw,3.4rem);line-height:.9;letter-spacing:-.03em}
+  .stat figcaption{font:500 .92rem/1.35 var(--sans);max-width:none;color:var(--ink2)}
+  .stat .src{font-size:10px;min-height:44px;display:inline-flex;align-items:center;margin-top:2px}
+
+  /* GALLERY CARDS: stacked compact layout — no flip overlay */
+  .board-sec .sub{margin-bottom:4px}
+  .grid{gap:14px}
+  .card{
+    height:auto!important;min-height:0!important;perspective:none;
+    opacity:0;transform:translateY(16px);
+    animation:cardIn .7s var(--ease) forwards;animation-delay:calc(var(--i)*.06s);
+  }
+  @keyframes cardIn{to{opacity:1;transform:none}}
+  .card .inner{
+    position:relative!important;inset:auto!important;
+    display:flex;flex-direction:column;
+    min-height:0!important;height:auto!important;
+    transform:none!important;border-radius:18px;overflow:hidden;
+    box-shadow:0 1px 0 var(--rule),0 14px 32px -20px rgba(0,0,0,.22);
+    transition:box-shadow .45s var(--ease),transform .45s var(--ease);
+  }
+  .card:hover .inner,.card:focus-visible .inner,.card.flip .inner{
+    transform:none!important;box-shadow:0 1px 0 var(--rule),0 18px 36px -18px rgba(0,0,0,.28);
+  }
+  .face{position:relative!important;inset:auto!important;overflow:visible}
+  .face.front{
+    padding:18px 18px 12px;gap:8px;
+    background:#fff;border-top:0;
+  }
+  .front::before{top:18px;right:18px}
+  .front .ind{font-size:10px;letter-spacing:.14em;color:var(--mute)}
+  .front h3{
+    font-size:clamp(1.55rem,6.5vw,1.95rem);line-height:1.15;
+    margin:0;overflow-wrap:anywhere;word-break:break-word;
+  }
+  .front q{
+    font:400 .95rem/1.4 var(--serif);color:var(--ink2);
+    -webkit-line-clamp:3;margin:0;
+    background-size:0!important;color:var(--ink2)!important;
+  }
+  .card:hover .front q,.card.flip .front q,.card:focus-visible .front q{
+    background-size:0!important;color:var(--ink2)!important;
+  }
+  .front .hint{display:none!important}
+
+  /* light verdict row — never overlaps brand/claim */
+  .face.back,.card.flip .back,.card:hover .back,.card:focus-visible .back{
+    clip-path:none!important;
+    position:relative!important;
+    background:var(--paper2)!important;
+    color:var(--ink)!important;
+    justify-content:flex-start;
+    padding:14px 18px 16px;gap:8px;
+    border-top:1px solid var(--rule);
+    min-height:0;
+  }
+  .back .verdict{
+    rotate:0deg!important;
+    font:700 .72rem/1.2 var(--sans);letter-spacing:.06em;
+    padding:7px 10px;border-radius:8px;border-width:1.5px;
+    color:var(--red);background:#fff;
+    max-width:100%;white-space:normal;overflow-wrap:anywhere;
+    height:auto;align-self:flex-start;
+  }
+  .back.ok .verdict{color:var(--ok)}.back.uns .verdict{color:var(--amber)}
+  .back .vdetail{font:500 12px/1.35 var(--sans);color:var(--ink2)!important}
+  .back small{font:500 11px/1.35 var(--sans);letter-spacing:.02em;color:var(--mute)!important;text-transform:none}
+  .back .more{
+    margin-top:4px;min-height:44px;display:inline-flex;align-items:center;
+    font:600 12px/1 var(--sans);letter-spacing:.08em;color:var(--red);text-transform:uppercase;
+  }
+
+  /* METHOD: tighter steps */
+  .how-pin{padding:56px 0 40px}
+  .how-track{gap:28px;padding:24px var(--pad) 0}
+  .step .ill{height:160px;border-radius:16px}
+  .step figcaption{font-size:1.05rem}
+
+  /* RULES: readable stacked rows, 44px taps */
+  .chips{margin-top:24px}
+  .rule{
+    display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+    padding:16px 0;min-height:56px;font-size:1.05rem;line-height:1.3;
+    grid-template-columns:none;
+  }
+  .rule .mono{grid-column:auto;font-size:11px}
+  .rule i{align-self:flex-end}
+
+  /* FILTERS already scroll — ensure 44px */
+  .filters{margin:20px 0 24px;gap:8px}
+  .filters button{min-height:44px;padding:10px 14px}
+
+  /* RESEARCH polish */
+  .search{margin:24px 0 12px;gap:12px}
+  .search input{font-size:1.75rem;padding:8px 0 12px}
+  .search .btn{min-height:52px;border-radius:999px}
+  .progress{padding:14px;border-radius:18px;margin:20px 0}
+  .claim{padding:18px 0}
+  .claim q{font-size:1.15rem}
+  .recent-wrap{margin-top:48px}
+  .chip{min-height:44px;padding:10px 14px;border-radius:999px}
+
+  /* HOOD / FOOTER */
+  footer{padding:28px var(--pad) calc(88px + env(safe-area-inset-bottom))}
+
+  /* modal already bottom-sheet — refine */
+  #modalBody{padding:24px 20px 32px}
+  #modalBody h2{font-size:1.9rem!important;line-height:1.15}
+  dl{grid-template-columns:72px 1fr;gap:12px 14px;margin-top:20px}
+  dd{font-size:1rem}
+
+  /* kill stray black bar artifacts from clip-path remnants */
+  .card .back::before,.card .back::after{content:none!important;display:none!important}
+}
+@media (max-width:768px) and (prefers-reduced-motion:reduce){
+  .card{animation:none;opacity:1;transform:none}
+}

@@ -5,7 +5,20 @@ const vClass = (v) => (/hold/i.test(v) ? 'ok' : /unsub|commit/i.test(v) ? 'uns' 
 const unq = (s) => String(s ?? '').trim().replace(/^["'“”‘’«»]+|["'“”‘’«»]+$/g, '').trim();
 const fmtDate = (d) => { const m = String(d || '').match(/^(\d{4})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, 1).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) : String(d || ''); };
 const vSplit = (v) => { const m = String(v || '').match(/^([^(]+?)\s*\((.+)\)\s*$/); return m ? [m[1], m[2]] : [String(v || ''), '']; };
-const prettyStep = (s) => { s = String(s || '').replace(/https?:\/\/(?:www\.)?([^\/\s]+)\S*/gi, '$1').replace(/\bwww\.([^\s\/]+)/gi, '$1'); return s === s.toUpperCase() && /[A-Z]/.test(s) ? s.toLowerCase().replace(/^\w/, (c) => c.toUpperCase()).replace(/\b(prosecutor|judge|defender)\b/gi, (w) => w[0].toUpperCase() + w.slice(1)) : s; };
+const prettyStep = (s) => {
+  s = String(s || '')
+    .replace(/https?:\/\/(?:www\.)?([^\/\s]+)\S*/gi, '$1')
+    .replace(/\bwww\.([^\s\/]+)/gi, '$1')
+    .replace(/\bweb_fetch\s+/gi, 'reading ')
+    .replace(/\bweb_search\s+/gi, 'searching ')
+    .replace(/\bwrite\s+\S+/gi, 'writing findings')
+    .replace(/\s+/g, ' ').trim();
+  if (s === s.toUpperCase() && /[A-Z]/.test(s)) {
+    s = s.toLowerCase().replace(/^\w/, (c) => c.toUpperCase())
+      .replace(/\b(prosecutor|judge|defender|consultant)\b/gi, (w) => w[0].toUpperCase() + w.slice(1));
+  }
+  return s;
+};
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* scroll reveal + counters */
@@ -42,15 +55,14 @@ function render(ind) {
   $('#grid').innerHTML = cases.filter((c) => ind === 'All' || c.industry === ind).map((c, i) => `
     <button class="card" data-id="${esc(c.id)}" style="--i:${i}" aria-label="${esc(c.brand)}: ${esc(c.verdict)}">
       <div class="inner">
-        <div class="face front"><span class="ind">${esc(c.industry)}</span><h3>${esc(c.brand)}</h3><q>${esc(unq(c.claim))}</q><span class="hint">Tap to reveal the verdict</span></div>
+        <div class="face front"><span class="ind">${esc(c.industry)}</span><h3>${esc(c.brand)}</h3><q>${esc(unq(c.claim))}</q><span class="hint">Open details</span></div>
         <div class="face back ${vClass(c.verdict)}"><span class="verdict">${esc(vSplit(c.verdict)[0])}</span>${vSplit(c.verdict)[1] ? `<span class="vdetail">${esc(vSplit(c.verdict)[1])}</span>` : ''}<small>${esc(c.regulator)} · ${esc(fmtDate(c.date))}</small><span class="more">Details →</span></div>
       </div>
     </button>`).join('');
 }
 $('#grid').addEventListener('click', (e) => {
   const card = e.target.closest('.card'); if (!card) return;
-  // touch: first tap flips, second opens
-  if (matchMedia('(hover: none)').matches && !card.classList.contains('flip')) { card.classList.add('flip'); return; }
+  // Open the case file on tap/click. Mobile shows the verdict row inline (no flip overlay).
   const c = cases.find((x) => x.id === card.dataset.id);
   $('#modalBody').innerHTML = `<span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><h2 style="font-size:2rem;margin-top:.4em">${esc(c.brand)}</h2>
     <dl><dt>Claim</dt><dd><q>${esc(unq(c.claim))}</q></dd><dt>Why</dt><dd>${esc(c.reason)}</dd>

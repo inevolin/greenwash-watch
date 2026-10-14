@@ -84,10 +84,13 @@
   gsap.from('.hero-meta, .hero-cta, .hero-lead', { opacity: 0, y: 16, duration: 1, stagger: 0.1, delay: 0.7, ease: 'power3.out' });
 
   /* kinetic headings */
+  const touch = matchMedia('(hover: none), (max-width: 768px)').matches;
   document.querySelectorAll('.kinetic').forEach((h) => {
     h.innerHTML = h.textContent.split(' ').map((w) => `<span style="display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em">${[...w].map((c) => `<span class="ch">${c}</span>`).join('')}</span>`).join(' ');
-    gsap.from(h.querySelectorAll('.ch'), { yPercent: 115, rotate: 8, duration: 1.1, ease: 'expo.out', stagger: 0.025,
-      scrollTrigger: { trigger: h, start: 'top 85%' } });
+    gsap.from(h.querySelectorAll('.ch'), {
+      yPercent: touch ? 70 : 115, rotate: touch ? 0 : 8, duration: touch ? 0.85 : 1.1, ease: 'expo.out', stagger: touch ? 0.018 : 0.025,
+      scrollTrigger: { trigger: h, start: 'top 88%' }
+    });
   });
 
   /* method: horizontal pinned scrub */
@@ -102,13 +105,21 @@
   });
   gsap.utils.toArray('.step').forEach((s, i) => gsap.set(s, { '--p': 0 }));
 
-  /* stat parallax */
-  gsap.utils.toArray('.stat b').forEach((b, i) => gsap.fromTo(b, { yPercent: 20 + i * 12 }, { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.stats', scrub: true } }));
+  /* stat parallax — desktop only (mobile uses swipe cards) */
+  mm.add('(min-width: 769px)', () => {
+    gsap.utils.toArray('.stat b').forEach((b, i) => gsap.fromTo(b, { yPercent: 20 + i * 12 }, { yPercent: -10, ease: 'none', scrollTrigger: { trigger: '.stats', scrub: true } }));
+  });
 
   /* case files drop onto the board as they render */
   const grid = document.getElementById('grid');
   new MutationObserver(() => {
-    gsap.from(grid.children, { y: 60, rotate: () => gsap.utils.random(-6, 6), opacity: 0, duration: 0.9, stagger: 0.05, ease: 'expo.out', clearProps: 'transform,opacity' });
+    const touchUI = matchMedia('(max-width: 768px)').matches;
+    gsap.from(grid.children, {
+      y: touchUI ? 24 : 60,
+      rotate: touchUI ? 0 : () => gsap.utils.random(-6, 6),
+      opacity: 0, duration: touchUI ? 0.55 : 0.9, stagger: touchUI ? 0.04 : 0.05, ease: 'expo.out',
+      clearProps: 'transform,opacity'
+    });
     ScrollTrigger.refresh();
   }).observe(grid, { childList: true });
 
