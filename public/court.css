@@ -159,3 +159,9 @@ footer.ft{display:block;padding:56px var(--pad) calc(28px + env(safe-area-inset-
 .ft-links a:hover{background:#ece6dc}
 .ft-base{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:500 12px var(--sans);color:var(--mute)}
 @media (max-width:768px){footer.ft{padding:44px var(--pad) calc(96px + env(safe-area-inset-bottom))}.ft-top{gap:24px}.ft-badge{width:100%;box-sizing:border-box}.ft-links a{margin-left:0;padding:0 12px 0 0}}
+.ba-handle{place-items:end center}
+.ba-handle i{width:30px;height:30px;margin-bottom:4px}
+.ba.edge .ba-handle::before{opacity:0}
+.ba-handle::before{transition:opacity .3s}
+.ba-hint{white-space:nowrap;bottom:9px}
+.ba-pane{padding-bottom:44px}

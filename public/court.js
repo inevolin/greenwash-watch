@@ -82,7 +82,7 @@
     root.querySelectorAll('[data-ba]').forEach((ba) => {
       if (ba.dataset.ready) return; ba.dataset.ready = 1;
       const h = ba.querySelector('.ba-handle');
-      const set = (pct) => { pct = Math.max(0, Math.min(100, pct)); ba.style.setProperty('--x', pct + '%'); h.setAttribute('aria-valuenow', Math.round(pct)); };
+      const set = (pct) => { pct = Math.max(0, Math.min(100, pct)); ba.style.setProperty('--x', pct + '%'); ba.classList.toggle('edge', pct < 4 || pct > 96); h.setAttribute('aria-valuenow', Math.round(pct)); };
       const fromEv = (e) => { const r = ba.getBoundingClientRect(); return ((e.clientX - r.left) / r.width) * 100; };
       let drag = false, moved = 0, x0 = 0;
       ba.addEventListener('pointerdown', (e) => { drag = true; moved = 0; x0 = e.clientX; ba.setPointerCapture(e.pointerId); set(fromEv(e)); ba.classList.add('drag'); });
