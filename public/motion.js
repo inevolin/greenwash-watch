@@ -1,4 +1,4 @@
-/* Greenwash Watch · motion layer. Purely presentational: never touches app.js state. */
+/* Greenwashing Watchdog · motion layer. Purely presentational: never touches app.js state. */
 (() => {
   const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;

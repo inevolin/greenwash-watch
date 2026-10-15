@@ -1,4 +1,4 @@
-// Greenwash Watch: zero-dependency Node server (Node >= 18, uses built-in fetch).
+// Greenwashing Watchdog: zero-dependency Node server (Node >= 18, uses built-in fetch).
 // Endpoints:
 //   GET  /api/health          -> mode + config status
 //   GET  /api/cases           -> verified case gallery data
@@ -35,7 +35,7 @@ async function cma(method, p, body) {
   return text ? JSON.parse(text) : {};
 }
 
-const PROMPT = (brand) => `Research the brand "${brand}" as the Greenwash Watch agent.
+const PROMPT = (brand) => `Research the brand "${brand}" as the Greenwashing Watchdog agent.
 Find its recent environmental / sustainability marketing claims (use relative dates: roughly the last 12 months), and any regulator or court rulings about them.
 For each claim: quote the brand's own words exactly, give the exact URL of the page where you found it (source_url; never guess or reconstruct one), its page title (source_title), a verbatim excerpt of at most 30 words (quoted_excerpt) and the date, and find at least one independent source that supports or contradicts it.
 Verdict scale: "holds up" | "unsubstantiated" | "misleading". Use "unsubstantiated" when evidence is insufficient.
@@ -216,7 +216,7 @@ async function runLive(job) {
   pushEv(job, { agent: 'Server', kind: 'sys', text: 'Creating Managed Agents session…' });
   const resources = MEMORY_STORE_ID ? [{ type: 'memory_store', memory_store_id: MEMORY_STORE_ID, access: 'read_write', instructions: `Brand memory. Read and update brands/${norm(job.brand)}.md.` }] : undefined;
   const session = await cma('POST', '/sessions', {
-    agent: RUN_AGENT, environment_id: ENVIRONMENT_ID, title: `Greenwash Watch: ${job.brand}`,
+    agent: RUN_AGENT, environment_id: ENVIRONMENT_ID, title: `Greenwashing Watchdog: ${job.brand}`,
     budget: { type: 'limit', max_list_cost: { amount: String(process.env.BUDGET_CENTS || 400), currency: 'USD' } },
     ...(resources ? { resources } : {}),
     initial_events: process.env.USE_OUTCOME === '0'
@@ -374,4 +374,4 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => console.log(`Greenwash Watch on http://localhost:${PORT}  [${MOCK ? 'MOCK mode, example data' : 'LIVE: Claude Managed Agents'}]`));
+server.listen(PORT, '0.0.0.0', () => console.log(`Greenwashing Watchdog on http://localhost:${PORT}  [${MOCK ? 'MOCK mode, example data' : 'LIVE: Claude Managed Agents'}]`));

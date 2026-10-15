@@ -26,8 +26,8 @@
     const t = top(r) || {}, k = vCls(t.verdict), s = score(r);
     // header
     x.fillStyle = '#2f7d55'; x.beginPath(); x.arc(92, 98, 10, 0, 7); x.fill();
-    x.fillStyle = '#1f1e1d'; x.font = `600 22px ${sans}`; x.fillText('Greenwash', 112, 106); const gw = x.measureText('Greenwash ').width;
-    x.font = `italic 400 24px ${serif}`; x.fillText('Watch', 112 + gw, 106);
+    x.fillStyle = '#1f1e1d'; x.font = `600 22px ${sans}`; x.fillText('Greenwashing', 112, 106); const gw = x.measureText('Greenwashing ').width;
+    x.font = `italic 400 24px ${serif}`; x.fillText('Watchdog', 112 + gw, 106);
     x.fillStyle = '#87847c'; x.font = `600 15px ${sans}`; x.textAlign = 'right'; x.fillText('VERDICT CARD · ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }).toUpperCase(), W - 92, 104); x.textAlign = 'left';
     x.fillStyle = '#eee8de'; x.fillRect(80, 132, W - 160, 2);
     // brand
@@ -64,11 +64,11 @@
     btn && btn.classList.add('busy');
     try {
       const cv = render(r); const blob = await new Promise((res) => cv.toBlob(res, 'image/png'));
-      const name = `greenwash-watch-${clean(r.brand).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+      const name = `greenwashing-watchdog-${clean(r.brand).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
       const file = new File([blob], name, { type: 'image/png' });
       const touch = matchMedia('(hover: none)').matches;
       if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
-        try { await navigator.share({ files: [file], title: `${clean(r.brand)} · Greenwash Watch`, text: `Our assessment of ${clean(r.brand)}'s green claims`, url: location.origin + location.pathname }); return; }
+        try { await navigator.share({ files: [file], title: `${clean(r.brand)} · Greenwashing Watchdog`, text: `Our assessment of ${clean(r.brand)}'s green claims`, url: location.origin + location.pathname }); return; }
         catch (e) { if (e.name === 'AbortError') return; }
       }
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();

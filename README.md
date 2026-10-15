@@ -1,6 +1,6 @@
-# Greenwash Watch
+# Greenwashing Watchdog
 
-Greenwash Watch is an evidence-based greenwashing watchdog built on **Claude Managed Agents**. Give it a brand and an agent searches the web for the brand's environmental claims. It quotes each claim, looks for independent evidence, and rates it **holds up / unsubstantiated / misleading**, with citations. Verdicts are the agent's assessment of public evidence, not legal findings.
+Greenwashing Watchdog is an evidence-based greenwashing watchdog built on **Claude Managed Agents**. Give it a brand and an agent searches the web for the brand's environmental claims. It quotes each claim, looks for independent evidence, and rates it **holds up / unsubstantiated / misleading**, with citations. Verdicts are the agent's assessment of public evidence, not legal findings.
 
 The site includes:
 - a landing page with verified stats (European Commission, UK CMA)
