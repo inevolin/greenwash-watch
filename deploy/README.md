@@ -1,4 +1,8 @@
-# Deploy: nevolin.be/greenwashing-watchdog
+# Deploy (retired)
+
+The hosted instance at nevolin.be was shut down on 15 Nov 2026; see the Demo section in the main README. The notes below are kept for reference.
+
+## Former deploy: nevolin.be path prefix
 
 - Server: DigitalOcean droplet; nginx vhost `nevolin.be` proxies `/greenwashing-watchdog/` to `127.0.0.1:3300` (see `nginx-location.conf`).
 - App: `/root/apps/greenwash-watch` (git checkout), saved reports in `/root/apps/greenwash-watch-data`, pm2 app **`greenwash-watch`** (memory capped via `ecosystem.config.js`). Never `pm2 reload all`.

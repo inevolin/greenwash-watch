@@ -1,5 +1,25 @@
 # Greenwashing Watchdog
 
+## Demo
+
+The hosted version is no longer online. These recordings were captured from the live app on 15 Nov 2026, using saved reports (no new agent runs).
+
+**1. Landing page: verified stats and the rules**
+
+![Landing page](docs/demo/01-landing.gif)
+
+**2. Case files: 10 real regulator and court rulings**
+
+![Case files](docs/demo/02-case-files.gif)
+
+**3. A saved brand investigation (TotalEnergies), the leaderboard and "under the hood"**
+
+![Brand report](docs/demo/03-brand-report.gif)
+
+Higher-quality MP4s: [landing](docs/demo/01-landing.mp4) · [case files](docs/demo/02-case-files.mp4) · [brand report](docs/demo/03-brand-report.mp4). Stills: [hero](docs/demo/hero.png) · [report](docs/demo/report.png).
+
+To run it yourself, see [Run locally](#run-locally-node--18-zero-dependencies) below (`MOCK=1` works without an API key).
+
 Greenwashing Watchdog is an evidence-based greenwashing watchdog built on **Claude Managed Agents**. Give it a brand and an agent searches the web for the brand's environmental claims. It quotes each claim, looks for independent evidence, and rates it **holds up / unsubstantiated / misleading**, with citations. Verdicts are the agent's assessment of public evidence, not legal findings.
 
 The site includes:
