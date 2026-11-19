@@ -63,26 +63,45 @@
   });
   // Recent reports opened by app.js may carry debate fields.
   window.addEventListener('gw:report', (e) => debate(e.detail));
+  function slot(name, text) { const el = document.querySelector(`[data-slot="${name}"]`); if (el) el.textContent = text || ''; }
+  function agentNote(a) { return a ? [a.name, a.version != null ? 'v' + a.version : '', a.model].filter(Boolean).join(' · ') : ''; }
   async function hood() {
-    let h; try { h = await (await ofetch('api/cma')).json(); } catch { return; }
-    const node = (t, id, sub, pulse) => `<div class="hood-node${pulse ? ' pulse' : ''}"><h5>${t}</h5><code>${esc(id || '—')}</code><small>${sub || ''}</small></div>`;
-    if (h.mode !== 'live') { $('#hood-diagram').innerHTML = node('Mock mode', '', 'No API key configured'); return; }
-    const a = h.agents || {}, ag = (x) => x ? `${esc(x.name)} v${x.version} · ${esc(x.model || '')}` : '';
-    const lr = h.last_run || {};
-    $('#hood-diagram').innerHTML = [
-      node('Agent · Judge (coordinator)', a.judge?.id, ag(a.judge) + ' · multiagent_20261001'),
-      node('Subagent · Prosecutor', a.prosecutor?.id, ag(a.prosecutor)),
-      node('Subagent · Defender', a.defender?.id, ag(a.defender)),
-      node('Subagent · Compliance Consultant', a.consultant?.id, ag(a.consultant)),
-      node('Environment', h.environment?.id, `networking: ${esc(h.environment?.networking || '')}`),
-      node('Session', lr.session_id, lr.brand ? `last: ${esc(lr.brand)}` : 'none yet', !lr.finished),
-      node('Events', 'SSE /events/stream', 'primary + one stream per subagent thread'),
-      node('Outcome', h.outcome?.rubric, `max_iterations ${h.outcome?.max_iterations} · ${esc(lr.outcome?.result || '')}`),
-      node('Memory store', h.memory?.id, `${(h.memory?.files || []).length} files · brands/&lt;slug&gt;.md`),
-      node('Deployment', h.deployment?.id, `cron ${esc(h.deployment?.cron)} ${esc(h.deployment?.tz)} · next ${esc((h.deployment?.next || '').replace('T', ' ').slice(0, 16))} UTC`),
-    ].join('');
-    const s = lr.stats || {};
-    $('#hood-stats').innerHTML = s.cost_usd != null ? [['Cost', '$' + s.cost_usd.toFixed(2)], ['Output tokens', s.output_tokens], ['Input tokens', s.input_tokens], ['Web searches', s.web_searches], ['Active', Math.round(s.active_seconds || 0) + 's'], ['Duration', Math.round(s.duration_seconds || 0) + 's']].map(([k, v]) => `<div><b>${esc(v ?? '—')}</b>${k}</div>`).join('') : '<div>No live run yet</div>';
+    let h = { mode: 'mock' };
+    try { h = await (await ofetch('api/cma')).json(); } catch { /* diagram stays; stats explain themselves */ }
+    const a = h.agents || {};
+    slot('judge', agentNote(a.judge));
+    slot('prosecutor', agentNote(a.prosecutor));
+    slot('defender', agentNote(a.defender));
+    slot('consultant', agentNote(a.consultant));
+    const files = (h.memory && h.memory.files) || [];
+    slot('memory', h.memory ? `${files.length} file${files.length === 1 ? '' : 's'} in the memory store` : '');
+    const s = (h.last_run && h.last_run.stats) || null;
+    const box = $('#hood-stats'); if (!box) return;
+    const figure = (value, label, source, count) => {
+      const num = count == null ? '' : ` class="count" data-to="${count}" data-suffix=""`;
+      return `<figure class="hood-stat"><b${num}>${esc(value)}</b><figcaption>${esc(label)}</figcaption><span class="src">${esc(source)}</span></figure>`;
+    };
+    const cells = s ? [
+      s.cost_usd != null ? figure('$' + Number(s.cost_usd).toFixed(2), 'Cost', 'Last investigation') : '',
+      s.web_searches != null ? figure(String(s.web_searches), 'Web searches', 'Tool calls on that run', s.web_searches) : '',
+      s.output_tokens != null ? figure(String(s.output_tokens), 'Output tokens', 'Last investigation', s.output_tokens) : '',
+      s.active_seconds != null ? figure(Math.round(s.active_seconds) + 's', 'Active', 'Time the agents were working', Math.round(s.active_seconds)).replace('data-suffix=""', 'data-suffix="s"') : '',
+    ].filter(Boolean) : [];
+    box.classList.toggle('is-empty', !cells.length);
+    box.innerHTML = cells.length
+      ? cells.join('')
+      : ['Cost', 'Web searches', 'Output tokens', 'Active'].map((k) => `<figure class="hood-stat"><b class="is-dash" aria-label="Not recorded"></b><figcaption>${esc(k)}</figcaption><span class="src">Last investigation</span></figure>`).join('')
+        + '<p class="hood-empty">No live run recorded yet. These four figures are filled from that run. Nothing on this page is estimated.</p>';
+    if (cells.length) box.querySelectorAll('.count').forEach((el) => {
+      const to = +el.dataset.to; if (!Number.isFinite(to)) return;
+      const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduced) { el.textContent = String(to); return; }
+      const t0 = performance.now();
+      const suf = el.dataset.suffix || '';
+      const tick = (t) => { const p = Math.min(1, (t - t0) / 1100); el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))) + suf; if (p < 1) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    });
+    window.dispatchEvent(new Event('gw:pipe'));
   }
   document.addEventListener('DOMContentLoaded', hood);
   // ---------- Leaderboard ----------
