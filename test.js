@@ -5,7 +5,7 @@ const ok = (c, m) => { if (!c) { console.error('FAIL', m); process.exit(1); } co
   const h = await (await fetch(base + '/api/health')).json(); ok(h.ok, 'health ' + h.mode);
   const cases = await (await fetch(base + '/api/cases')).json(); ok(cases.length === 10, '10 cases');
   ok(new Set(cases.map((c) => c.industry)).size === 8, '8 industries');
-  const html = await (await fetch(base + '/')).text(); ok(html.includes('Greenwash Watch'), 'index served');
+  const html = await (await fetch(base + '/')).text(); ok(html.includes('Greenwashing Watchdog'), 'index served');
   for (const f of ['/styles.css', '/app.js']) ok((await fetch(base + f)).status === 200, f);
   ok((await fetch(base + '/api/research', { method: 'POST', body: '{}' })).status === 400, 'empty brand rejected');
   const { jobId } = await (await fetch(base + '/api/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brand: 'Persil' }) })).json();
