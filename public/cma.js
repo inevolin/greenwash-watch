@@ -103,7 +103,18 @@
       return `<li class="lb-row"><span class="lb-rank">${i + 1}</span><div class="lb-main"><div class="lb-top"><b>${esc(b.brand)}</b><em>${esc(b.industry)}</em><span class="lb-score">${b.score}</span></div><div class="lb-bar"><i class="${tone}" style="--w:${b.score}%;--d:${i * 70}ms"></i></div><small>${t['holds up'] || 0} hold up · ${t.unsubstantiated || 0} unsubstantiated · ${t.misleading || 0} misleading · checked ${esc(b.last_checked)}${h.length > 1 ? ` · ${h.length} runs (${h.map((x) => x.score).join(' → ')})${d ? ` <span class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'}${Math.abs(d)}</span>` : ''}` : ''}</small></div></li>`; }).join('') : '<li class="lb-empty">No brands in this industry yet.</li>';
     requestAnimationFrame(() => requestAnimationFrame(() => l.querySelectorAll('.lb-bar i').forEach((x) => x.classList.add('go'))));
   }
-  async function lbLoad() { lbMount(); try { lb = await (await ofetch('api/leaderboard')).json(); lbRender(); } catch {} }
+  async function lbLoad() {
+    lbMount();
+    try {
+      const res = await ofetch('api/leaderboard');
+      if (!res.ok) throw new Error('status');
+      lb = await res.json();
+      lbRender();
+    } catch {
+      const l = document.querySelector('#leaderboard .lb-list');
+      if (l) l.innerHTML = '<li class="lb-empty">The leaderboard didn’t load. Refresh the page to try again. Case files are still available.</li>';
+    }
+  }
   document.addEventListener('click', (e) => { const b = e.target.closest('#leaderboard .lb-filter button'); if (b) { ind = b.dataset.ind; lbRender(); } });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', lbLoad); else lbLoad();
 })();

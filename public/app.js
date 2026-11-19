@@ -44,12 +44,25 @@ function countUp(el) {
 /* gallery */
 let cases = [];
 async function loadCases() {
-  cases = await (await fetch('api/cases')).json();
+  try {
+    const res = await fetch('api/cases');
+    if (!res.ok) throw new Error('status');
+    cases = await res.json();
+    if (!Array.isArray(cases) || !cases.length) throw new Error('empty');
+  } catch {
+    $('#grid').removeAttribute('aria-busy');
+    $('#grid').innerHTML = '<p class="empty-state">Case files didn’t load. Refresh the page to try again.</p>';
+    return;
+  }
   const inds = ['All', ...new Set(cases.map((c) => c.industry))];
-  $('#filters').innerHTML = inds.map((i, n) => `<button data-i="${esc(i)}" class="${n ? '' : 'on'}">${esc(i)}</button>`).join('');
+  $('#filters').innerHTML = inds.map((i, n) => `<button type="button" data-i="${esc(i)}" class="${n ? '' : 'on'}" aria-pressed="${n ? 'false' : 'true'}">${esc(i)}</button>`).join('');
   $('#filters').onclick = (e) => {
     const b = e.target.closest('button'); if (!b) return;
-    document.querySelectorAll('#filters button').forEach((x) => x.classList.toggle('on', x === b));
+    document.querySelectorAll('#filters button').forEach((x) => {
+      const on = x === b;
+      x.classList.toggle('on', on);
+      x.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
     render(b.dataset.i);
   };
   render('All');
@@ -96,20 +109,38 @@ addEventListener('scroll', () => { const y = window.scrollY; if (Math.abs(y - la
 
 /* mode + limits */
 async function health() {
-  const h = await (await fetch('api/health')).json();
   const b = $('#modeBadge');
-  b.textContent = h.mode === 'mock' ? 'Demo data' : 'Live agent';
-  b.className = 'tag ' + h.mode;
-  if (h.limits && h.mode === 'live') $('#limits').textContent = `${h.limits.perIpPerHour} per hour · ${Math.max(0, h.limits.globalPerDay - h.limits.usedToday)} of ${h.limits.globalPerDay} left today`;
+  try {
+    const res = await fetch('api/health');
+    if (!res.ok) throw new Error('status');
+    const h = await res.json();
+    b.textContent = h.mode === 'mock' ? 'Demo data' : 'Live agent';
+    b.className = 'tag ' + h.mode;
+    if (h.limits && h.mode === 'live') $('#limits').textContent = `${h.limits.perIpPerHour} per hour · ${Math.max(0, h.limits.globalPerDay - h.limits.usedToday)} of ${h.limits.globalPerDay} left today`;
+    else $('#limits').textContent = '';
+  } catch {
+    b.textContent = 'Status unavailable';
+    b.className = 'tag mock';
+    $('#limits').textContent = 'Saved reports below still open.';
+  }
 }
 async function loadRecent() {
-  const [all, lb] = await Promise.all([fetch('api/recent').then((r) => r.json()), fetch('api/leaderboard').then((r) => r.json()).catch(() => null)]);
+  let all = [], lb = null;
+  try {
+    const res = await fetch('api/recent');
+    if (!res.ok) throw new Error('status');
+    all = await res.json();
+  } catch {
+    $('#recent').innerHTML = '<p class="empty-state">Recent investigations didn’t load. You can still name a brand above.</p>';
+    return;
+  }
+  try { lb = await (await fetch('api/leaderboard')).json(); } catch { lb = null; }
   const score = {}; ((lb && lb.brands) || []).forEach((b) => (score[b.slug] = b.score, score[gwBrand(b.brand).toLowerCase()] = b.score));
   // merge duplicates by display name (list is newest first; keep the first)
   const seen = new Set(), list = [];
   for (const r of all) { const name = gwBrand(r.brand), k = name.toLowerCase(); if (seen.has(k)) continue; seen.add(k); list.push({ ...r, brand: name, score: score[r.slug] ?? score[k] }); }
   const tone = (s) => (s == null ? '' : s >= 70 ? 'hi' : s >= 40 ? 'mid' : 'lo');
-  $('#recent').innerHTML = list.length ? list.map((r) => `<button class="chip ${tone(r.score)}" data-slug="${esc(r.slug)}"${r.score != null ? ` title="Integrity score ${r.score}/100"` : ''}><i class="dot" aria-hidden="true"></i>${esc(r.brand)}<small>${r.score != null ? r.score : r.claims + ' claims'}</small></button>`).join('') : '<span class="sub">Nothing yet.</span>';
+  $('#recent').innerHTML = list.length ? list.map((r) => `<button type="button" class="chip ${tone(r.score)}" data-slug="${esc(r.slug)}"${r.score != null ? ` title="Integrity score ${r.score}/100"` : ''}><i class="dot" aria-hidden="true"></i>${esc(r.brand)}<small>${r.score != null ? r.score : r.claims + ' claims'}</small></button>`).join('') : '<p class="empty-state">No saved investigations yet. Name a brand above to open the first one.</p>';
 }
 /* rotating suggestion placeholder */
 (() => {
@@ -132,33 +163,83 @@ $('#form').addEventListener('submit', async (e) => {
   const brand = $('#brand').value.trim(); if (!brand) return;
   const btn = e.target.querySelector('button'); btn.disabled = true;
   $('#report').innerHTML = ''; $('#steps').innerHTML = ''; $('#stepNow').textContent = 'Starting the agent…';
-  $('#progress').className = 'progress'; document.body.classList.add('searching');
+  $('#progress').className = 'progress'; $('#progress').setAttribute('aria-busy', 'true');
+  document.body.classList.add('searching');
   try {
     const r = await fetch('api/research', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ brand }) });
-    const { jobId, error } = await r.json(); if (!jobId) throw new Error(error || 'Failed to start');
+    let payload = {};
+    try { payload = await r.json(); } catch { throw new Error('The server sent an unexpected response.'); }
+    const { jobId, error } = payload; if (!jobId) throw new Error(error || 'Failed to start');
     for (;;) {
       await new Promise((res) => setTimeout(res, 1000));
-      const j = await (await fetch('api/research/' + jobId)).json();
-      $('#steps').innerHTML = j.progress.map((p) => `<li>${esc(prettyStep(p.s))}</li>`).join('');
-      if (j.progress.length) $('#stepNow').textContent = prettyStep(j.progress[j.progress.length - 1].s);
-      if (j.status === 'done') { $('#progress').classList.add('done', 'hidden'); window.__gwCapturedAt = j.saved_at || (j.cached ? null : new Date().toISOString()); showReport(j.report, j.mock, j.cached ? 'Cached result' : ''); loadRecent(); health(); break; }
-      if (j.status === 'error') throw new Error(j.error);
+      const jr = await fetch('api/research/' + jobId);
+      if (!jr.ok) throw new Error('The investigation status could not be read.');
+      const j = await jr.json();
+      $('#steps').innerHTML = (j.progress || []).map((p) => `<li>${esc(prettyStep(p.s))}</li>`).join('');
+      if (j.progress && j.progress.length) $('#stepNow').textContent = prettyStep(j.progress[j.progress.length - 1].s);
+      if (j.status === 'done') { $('#progress').classList.add('done', 'hidden'); $('#progress').removeAttribute('aria-busy'); window.__gwCapturedAt = j.saved_at || (j.cached ? null : new Date().toISOString()); showReport(j.report, j.mock, j.cached ? 'Cached result' : ''); loadRecent(); health(); break; }
+      if (j.status === 'error') throw new Error(j.error || 'The agent stopped before a report was ready.');
     }
   } catch (err) {
     $('#progress').classList.add('hidden');
-    $('#report').innerHTML = `<div class="err">${esc(err.message)}</div>`;
+    $('#progress').removeAttribute('aria-busy');
+    document.querySelector('#cma-live')?.classList.add('hidden');
+    $('#report').innerHTML = friendlyFailure(err && err.message);
+    $('#report').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
   } finally { btn.disabled = false; document.body.classList.remove('searching'); }
 });
 
+function friendlyFailure(message) {
+  const raw = String(message || '').replace(/\s+/g, ' ').trim();
+  const key = /401|403|authentication|api[_ ]key|x-api-key|invalid api|credit balance|permission denied/i.test(raw);
+  const limit = /429|rate limit|daily cap|per hour|per visitor/i.test(raw);
+  const down = /failed to fetch|network|timeout|timed out|unexpected response|503|502|500|could not be read/i.test(raw);
+  let title, body;
+  if (key) {
+    title = 'The live agent is offline for a moment';
+    body = 'The research key is being replaced, so a new investigation can’t start. Case files, the leaderboard, and saved reports are still here.';
+  } else if (limit) {
+    title = 'This demo has reached its search limit';
+    body = raw || 'Open a brand from Recently investigated. Those reports are already saved.';
+  } else if (down) {
+    title = 'The investigation didn’t finish';
+    body = 'The connection dropped before a report was ready. Try again, or open a saved report below.';
+  } else {
+    title = 'We couldn’t complete that investigation';
+    body = 'Nothing was published. Try again, or open a brand from Recently investigated.';
+  }
+  const detail = raw && !limit ? `<details class="notice-detail"><summary>What the server said</summary><p>${esc(raw.slice(0, 320))}</p></details>` : '';
+  return `<div class="notice" role="alert"><p class="notice-kicker">Investigation paused</p><h3>${title}</h3><p>${esc(body)}</p><div class="notice-actions"><a class="btn sm" href="#cases">Browse case files</a><button type="button" class="btn sm notice-ghost" onclick="document.getElementById('brand').focus()">Try another brand</button></div>${detail}</div>`;
+}
+
 function showReport(r, mock, note) {
+  r = r || {};
   window.dispatchEvent(new CustomEvent("gw:report", { detail: r }));
   const banner = mock || r.example_data ? `<div class="banner">Demo data. This is not a live run.</div>` : note ? `<div class="banner saved">${esc(note)}</div>` : '';
-  const items = (r.claims || []).map((c, i) => `<article class="claim ${vClass(c.verdict)}" style="--i:${i}">
-    <span class="v ${vClass(c.verdict)}">${esc(c.verdict)}</span><q>${esc(unq(c.claim))}</q>
-    <p>${esc(c.reason)}</p>
+  const claims = Array.isArray(r.claims) ? r.claims : [];
+  const items = claims.map((c, i) => `<article class="claim ${vClass(c.verdict)}" style="--i:${i}">
+    <span class="v ${vClass(c.verdict)}">${esc(c.verdict || 'Unrated')}</span><q>${esc(unq(c.claim) || 'Claim text was not returned.')}</q>
+    <p>${esc(c.reason || 'No explanation was returned for this claim.')}</p>
     ${window.gwSource ? window.gwSource(c) : ''}<ul>${(c.evidence || []).map((e) => `<li><a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener">${esc(e.title || e.url)}</a></li>`).join('')}</ul>
   </article>`).join('');
-  $('#report').innerHTML = `${banner}<h3 style="font-size:1.8rem;margin:.4em 0 .2em">${esc(r.brand)}</h3><p class="sub">${esc(r.summary)}</p><div class="claims">${items}</div>${r.raw ? `<pre>${esc(r.raw)}</pre>` : ''}`;
+  const body = items || '<p class="empty-state">No claims came back in a form we can show. Try another brand, or open a saved report.</p>';
+  const summary = r.summary ? esc(r.summary) : 'The agent finished without a written summary.';
+  $('#report').innerHTML = `<header class="report-head">${banner}<p class="kicker mono">Investigation</p><h3>${esc(r.brand || 'Unknown brand')}</h3><p class="sub">${summary}</p></header>${items ? `<div class="claims">${items}</div>` : body}${r.raw ? `<details class="raw-out"><summary>Agent notes</summary><pre>${esc(r.raw)}</pre></details>` : ''}`;
 }
+
+/* narrow navigation: one list, disclosed when the row does not fit */
+(() => {
+  const btn = document.querySelector('.nav-menu');
+  const nav = document.getElementById('primary-nav');
+  if (!btn || !nav) return;
+  const close = () => { nav.classList.remove('is-open'); btn.setAttribute('aria-expanded', 'false'); };
+  btn.addEventListener('click', () => {
+    const open = nav.classList.toggle('is-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  nav.addEventListener('click', (e) => { if (e.target.closest('a')) close(); });
+  document.addEventListener('click', (e) => { if (!nav.classList.contains('is-open')) return; if (!e.target.closest('#primary-nav, .nav-menu')) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+})();
 
 loadCases(); health(); loadRecent();
