@@ -69,7 +69,9 @@ async function loadCases() {
 }
 function render(ind) {
   $('#grid').removeAttribute('aria-busy');
-  $('#grid').innerHTML = cases.filter((c) => ind === 'All' || c.industry === ind).map((c, i) => `
+  const rows = cases.filter((c) => ind === 'All' || c.industry === ind);
+  if (!rows.length) { $('#grid').innerHTML = '<p class="empty-state">No case files in this industry.</p>'; return; }
+  $('#grid').innerHTML = rows.map((c, i) => `
     <button class="card" data-id="${esc(c.id)}" style="--i:${i}" aria-label="${esc(c.brand)}: ${esc(c.verdict)}">
       <div class="inner">
         <div class="face front"><span class="ind">${esc(c.industry)}</span><h3>${esc(c.brand)}</h3><q>${esc(unq(c.claim))}</q><span class="hint">Open details</span></div>

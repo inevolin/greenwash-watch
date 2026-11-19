@@ -21,7 +21,6 @@
 
 <header class="nav">
   <a class="logo magnetic" href="#top"><i class="logo-bar"></i><span class="logo-word">Greenwashing <em>Watchdog</em></span></a>
-  <a class="cpill" href="#hood"><img src="claude-mark.svg" alt="" width="14" height="14">Built with Claude</a>
   <button class="nav-menu" type="button" aria-expanded="false" aria-controls="primary-nav"><span class="nav-menu-icon" aria-hidden="true"></span>Menu</button>
   <nav id="primary-nav" aria-label="Primary"><a class="magnetic" href="#cases">Case files</a><a href="#research" class="btn sm magnetic">Investigate</a></nav>
 </header>
@@ -34,20 +33,24 @@
     <svg class="leaf-svg" viewBox="0 0 400 400" aria-hidden="true"><path class="leaf-shape" d="M70 340C40 200 150 70 340 55c12 160-80 280-270 285z"/><path class="leaf-vein" d="M85 325C160 250 240 170 330 70"/></svg>
     <div class="hero-meta mono"><span>File Nº 0001</span><span>Exhibit A · Real case, Eni 2020</span><span class="rec"><i></i>Under review</span></div>
     <div class="hero-layout">
-      <a class="cbadge hero-badge" href="https://www.anthropic.com/" target="_blank" rel="noopener"><img src="claude-mark.svg" alt="" width="18" height="18"><span>Built with <b>Claude Managed Agents</b><i>·</i>Claude Founder House Stockholm</span></a>
-      <h1 class="claim-title" aria-label="Eni claimed: Green Diesel helps protect the environment">
-        <span class="w"><span class="redact">“Green</span></span>
-        <span class="w"><span class="redact">Diesel”</span></span>
-        <span class="w"><span class="redact">helps</span></span>
-        <span class="w"><span class="redact">protect&nbsp;the</span></span>
-        <span class="w"><span class="redact">environment.</span></span>
-      </h1>
-      <aside class="hero-aside">
-        <div class="stamp hero-stamp" aria-hidden="true">Misleading</div>
+      <a class="cbadge hero-badge" href="https://www.anthropic.com/" target="_blank" rel="noopener"><img src="claude-mark.svg" alt="" width="18" height="18"><span>Built with <b>Claude Managed Agents</b></span></a>
+      <div class="hero-claim">
+        <h1 class="claim-title" aria-label="Eni claimed: Green Diesel helps protect the environment">
+          <span class="w"><span class="redact">“Green Diesel” helps protect</span></span>
+          <span class="w"><span class="redact">the environment.</span></span>
+          <span class="stamp hero-stamp" aria-hidden="true">Misleading</span>
+        </h1>
+      </div>
+      <div class="hero-cta">
+        <a class="btn magnetic" href="#research">Investigate a brand</a>
+        <a class="btn ghost magnetic" href="#cases">Browse case files</a>
+        <span class="scroll-cue mono">Scroll to examine ↓</span>
+      </div>
+      <aside class="hero-dossier">
+        <p class="mono hero-file">The file</p>
         <p class="hero-lead">An AI watchdog that checks green claims against the evidence.</p>
+        <p class="hero-exhibit"><b>Eni</b> · advertising claim · ruled misleading by Italy’s AGCM, Jan 2020 · €5m fine</p>
       </aside>
-      <p class="hero-exhibit"><b>Eni</b> · advertising claim · ruled misleading by Italy’s AGCM, Jan 2020 · €5m fine</p>
-      <div class="hero-cta"><a class="btn magnetic" href="#research">Investigate a brand</a><span class="scroll-cue mono">Scroll to examine ↓</span></div>
     </div>
   </div>
 </section>
@@ -144,9 +147,52 @@
 <section id="hood" class="section hood reveal">
   <div class="kicker mono">§ 06 · Under the hood</div>
   <h2 class="kinetic">Under the hood</h2>
-  <p class="sub">Every box is a live Claude Managed Agents object.</p>
-  <div id="hood-diagram" class="hood-diagram"></div>
-  <div id="hood-stats" class="hood-stats"></div>
+  <p class="sub">One Judge coordinates the review. Prosecutor and Defender gather evidence. The Consultant rewrites what does not hold.</p>
+  <div class="pipe" id="hood-diagram">
+    <svg class="pipe-svg" aria-hidden="true"></svg>
+    <article class="pipe-card" data-node="kick">
+      <p class="pipe-k mono">01 · Kickoff</p>
+      <h3>A brand is named</h3>
+      <p>A visitor starts a search, or the daily rotation at 08:00 Europe/Stockholm takes the next name from watchlist.md.</p>
+    </article>
+    <article class="pipe-card" data-node="judge">
+      <p class="pipe-k mono">02 · Judge</p>
+      <h3>Coordinator</h3>
+      <p>Reads brands/&lt;slug&gt;.md in the memory store, then delegates. Does not search the web unless a subagent fails.</p>
+      <small data-slot="judge"></small>
+    </article>
+    <div class="pipe-split">
+      <article class="pipe-card" data-node="pros">
+        <p class="pipe-k mono">03 · Prosecutor</p>
+        <h3>Case against</h3>
+        <p>Up to four claims, plus rulings and contradictions. Web search and web fetch.</p>
+        <small data-slot="prosecutor"></small>
+      </article>
+      <article class="pipe-card" data-node="def">
+        <p class="pipe-k mono">04 · Defender</p>
+        <h3>Case for</h3>
+        <p>Certifications and audited data for those same claims. Says when none exists.</p>
+        <small data-slot="defender"></small>
+      </article>
+    </div>
+    <article class="pipe-card" data-node="verdict">
+      <p class="pipe-k mono">05 · Verdict</p>
+      <h3>Holds up, unsubstantiated, or misleading</h3>
+      <p>The Judge weighs both sides and cites the rule. Flagged claims go to the Compliance Consultant for a lawful rewrite and the evidence still needed.</p>
+      <small data-slot="consultant"></small>
+    </article>
+    <article class="pipe-card" data-node="file">
+      <p class="pipe-k mono">06 · On file</p>
+      <h3>Grade, remember, publish</h3>
+      <p>An outcome grader checks the report against the rubric. The Judge updates the brand file. The report is what you read above.</p>
+      <small data-slot="memory"></small>
+    </article>
+  </div>
+  <div class="pipe-rail" aria-label="What the agents read and write">
+    <p><b>Memory store</b> <span>brands/&lt;slug&gt;.md · watchlist.md · rotation.md</span></p>
+    <p><b>Evidence</b> <span>Web search · web fetch · rulings · NGO reports · EU 2024/825 · UK CMA Green Claims Code</span></p>
+  </div>
+  <div id="hood-stats" class="hood-stats" aria-live="polite"></div>
 </section>
 </main>
 

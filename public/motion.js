@@ -4,7 +4,80 @@
   const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   const hasG = window.gsap && window.ScrollTrigger;
   document.documentElement.classList.add('js');
-  if (RM || !hasG) { document.documentElement.classList.remove('js'); drawStatic(); return; }
+
+  /* connectors for the agent pipeline; animation is added only when motion is allowed */
+  function layoutPipe() {
+    const root = document.querySelector('.pipe');
+    if (!root) return [];
+    const svg = root.querySelector('.pipe-svg');
+    if (!svg || getComputedStyle(svg).display === 'none') return [];
+    const box = root.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+    svg.querySelectorAll('.pipe-edge,.pipe-pulse').forEach((n) => n.remove());
+    const side = (name, edge) => {
+      const el = root.querySelector(`[data-node="${name}"]`);
+      if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { x: edge === 'right' ? r.right - box.left : r.left - box.left, y: r.top - box.top + r.height / 2 };
+    };
+    const ns = 'http://www.w3.org/2000/svg';
+    const n = (v) => v.toFixed(1);
+    /* Orthogonal fork: pairs that leave the same card share a trunk, so the split reads as one bus. */
+    const route = (A, B) => {
+      if (Math.abs(A.y - B.y) < 3) return `M ${n(A.x)} ${n(A.y)} H ${n(B.x)}`;
+      const dir = B.y > A.y ? 1 : -1;
+      const mid = A.x + Math.max(14, (B.x - A.x) * 0.55);
+      const r = Math.min(10, Math.abs(B.y - A.y) / 2, Math.abs(B.x - A.x) / 4);
+      return `M ${n(A.x)} ${n(A.y)} H ${n(mid - r)} Q ${n(mid)} ${n(A.y)} ${n(mid)} ${n(A.y + dir * r)} V ${n(B.y - dir * r)} Q ${n(mid)} ${n(B.y)} ${n(mid + r)} ${n(B.y)} H ${n(B.x)}`;
+    };
+    const paths = [];
+    for (const [from, to] of [['kick', 'judge'], ['judge', 'pros'], ['judge', 'def'], ['pros', 'verdict'], ['def', 'verdict'], ['verdict', 'file']]) {
+      const A = side(from, 'right'), B = side(to, 'left');
+      if (!A || !B) continue;
+      const p = document.createElementNS(ns, 'path');
+      p.setAttribute('class', 'pipe-edge');
+      p.setAttribute('d', route(A, B));
+      svg.appendChild(p);
+      paths.push(p);
+    }
+    return paths;
+  }
+  let pipeReady = false;
+  function armPipe() {
+    if (pipeReady) return;
+    pipeReady = true;
+    const root = document.querySelector('.pipe');
+    if (!root) return;
+    const run = () => {
+      const paths = layoutPipe();
+      if (RM || !hasG) return;
+      const svg = root.querySelector('.pipe-svg');
+      const ns = 'http://www.w3.org/2000/svg';
+      paths.forEach((p, i) => {
+        const len = p.getTotalLength();
+        const dot = document.createElementNS(ns, 'circle');
+        dot.setAttribute('class', 'pipe-pulse');
+        dot.setAttribute('r', '3.5');
+        dot.setAttribute('cx', '-20');
+        dot.setAttribute('cy', '-20');
+        svg.appendChild(dot);
+        const proxy = { t: 0 };
+        ScrollTrigger.create({
+          trigger: root, start: 'top 72%', once: true,
+          onEnter: () => {
+            gsap.fromTo(p, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 0.65, delay: i * 0.1, ease: 'power1.out' });
+            gsap.to(proxy, {
+              t: 1, duration: 1.25, delay: 0.35 + i * 0.16, ease: 'none', repeat: 1,
+              onUpdate: () => { const q = p.getPointAtLength(Math.max(0, len * proxy.t)); dot.setAttribute('cx', q.x); dot.setAttribute('cy', q.y); }
+            });
+          }
+        });
+      });
+    };
+    run();
+    let wait; addEventListener('resize', () => { clearTimeout(wait); wait = setTimeout(layoutPipe, 160); });
+  }
+  if (RM || !hasG) { document.documentElement.classList.remove('js'); armPipe(); drawStatic(); return; }
   gsap.registerPlugin(ScrollTrigger);
 
   /* inertial scroll */
@@ -68,7 +141,7 @@
     gsap.timeline({ delay: 0.9 })
       .to(pr, { v: 1.25, duration: 2.6, ease: 'power1.inOut', onUpdate: () => { prog = pr.v; } }, 0)
       .to(reds, { '--r': 1, duration: 0.32, stagger: 0.12, ease: 'power2.inOut' }, 0.2)
-      .fromTo('.hero-stamp', { opacity: 0, scale: 1.25, rotate: -12 }, { opacity: 1, scale: 1, rotate: -6, duration: 0.45, ease: 'back.out(2)' }, 1.05)
+      .fromTo('.hero-stamp', { opacity: 0, scale: 1.4, rotate: -18 }, { opacity: 1, scale: 1, rotate: -12, duration: 0.5, ease: 'back.out(1.6)' }, 1.05)
       .to('.hero-pin', { x: () => (Math.random() - 0.5) * 4, duration: 0.03, repeat: 3, yoyo: true, clearProps: 'x' }, 1.12)
       .fromTo('.hero-exhibit', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 1.35)
       .to('.rec', { color: '#b8502f', duration: 0.3 }, 1.05);
@@ -155,7 +228,8 @@
     });
     grid.addEventListener('pointerout', (e) => { const c = e.target.closest('.card'); if (c && !c.contains(e.relatedTarget)) gsap.to(c.querySelector('.inner'), { rotateX: 0, rotateY: 0, duration: 0.8, ease: 'elastic.out(1,.5)' }); });
   }
-  addEventListener('load', () => ScrollTrigger.refresh());
+  addEventListener('load', () => { armPipe(); ScrollTrigger.refresh(); });
+  armPipe();
   const pill = document.querySelector('.cpill');
   if (pill) ScrollTrigger.create({ trigger: '.hero', start: 'bottom 60%', onEnter: () => pill.classList.add('show'), onLeaveBack: () => pill.classList.remove('show') });
 
